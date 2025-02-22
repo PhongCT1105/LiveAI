@@ -9,7 +9,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white">
+    <div className="h-screen w-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white">
       {/* Title & Description Section */}
       <div className="max-w-2xl w-full px-4">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
