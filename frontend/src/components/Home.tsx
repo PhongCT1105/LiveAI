@@ -9,7 +9,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white">
+    <div className="h-screen w-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white">
       {/* Title & Description Section */}
       <div className="max-w-2xl w-full px-4">
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
@@ -21,7 +21,7 @@ const Home = () => {
       </div>
 
       {/* Video Section */}
-      <div className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl">
+      <div className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl border border-gray-700">
         <video
           id="homepage-video"
           className="w-full h-full object-cover rounded-lg"

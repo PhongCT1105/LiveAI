@@ -17,10 +17,10 @@ const Fridge = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-200 pt-16">
+    <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-200 pt-16">
       {/* Left Panel - Ingredient Details */}
       {selectedIngredient && (
-        <div className="absolute left-5 top-20 w-64 h-40 bg-white shadow-lg rounded-lg p-4 border border-gray-300">
+        <div className="absolute left-5 top-20 w-64 h-40 bg-white shadow-lg rounded-lg p-4">
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
           <p className="text-gray-700 mt-2">Quantity: {quantities[selectedIngredient] || "Unknown"}</p>
           <button
@@ -34,12 +34,12 @@ const Fridge = () => {
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Virtual Fridge</h2>
 
       {/* Fridge Container */}
-      <div className="relative w-96 h-[600px] bg-gray-100 rounded-lg border-8 border-gray-400 shadow-xl flex">
+      <div className="relative w-96 h-[600px] bg-gray-100 rounded-lg shadow-xl flex">
 
         {/* Main Fridge Section */}
-        <div className="w-2/3 h-full bg-white rounded-l-lg border-r-4 border-gray-400">
+        <div className="w-2/3 h-full bg-white rounded-l-lg">
           {Object.entries(fridgeSections).map(([sectionName, items], index) => (
-            <div key={index} className="relative flex flex-wrap justify-center items-center w-full h-1/5 border-b border-gray-300 last:border-none bg-gray-300 bg-opacity-30">
+            <div key={index} className="relative flex flex-wrap justify-center items-center w-full h-1/5 last:border-none bg-gray-300 bg-opacity-30">
               {/* Shelf Label */}
               <div className="absolute left-2 top-1 text-gray-700 text-sm font-semibold">{sectionName}</div>
 
