@@ -1,5 +1,5 @@
 export const getStoredIngredients = () => {
-  return ["Eggs", "Milk", "Cheese", "Tofu", "Carrot"];
+  return ["Banana", "Eggs", "Milk", "Cheese", "Tofu", "Carrot"];
 };
 
 export const getIngredientQuantities = () => {

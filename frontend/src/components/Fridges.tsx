@@ -1,30 +1,22 @@
 import { useState } from "react";
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
-import { getStoredIngredients } from "../utils/fridgeHelper";
-import fridgeImage from "../assets/Fridge.png";
-import cocaImage from "../assets/coca.png";
-import carrotImage from "../assets/carrot.png";
-
-
+import fridgeImage from "../assets/fridge_empty.png";
 
 const Fridge = () => {
   const [ingredients, setIngredients] = useState(getStoredIngredients());
   const [quantities, setQuantities] = useState(getIngredientQuantities());
-  const [isHovered, setIsHovered] = useState(null);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
 
-  // Categorizing shelves realistically
-  const fridgeSections = {
-    "🍏 Top Shelf": ingredients.filter(item => ["Apple", "Banana", "Cake"].includes(item)),
-    "🥚 Second Shelf": ingredients.filter(item => ["Eggs", "Cheese", "Milk"].includes(item)),
-    "🍖 Third Shelf": ingredients.filter(item => ["Chicken", "Fish", "Tofu"].includes(item)),
-    "🥕 Bottom Shelf": ingredients.filter(item => ["Carrot", "Lettuce", "Broccoli"].includes(item)),
-    "🧃 Door Racks": ingredients.filter(item => ["Juice", "Butter", "Ketchup"].includes(item)),
+  const positioningConfig = {
+    "🍏 Top Shelf": { top: "17%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
+    "🥚 Second Shelf": { top: "25%", left: "50%", width: "80%", items: ["Eggs", "Cheese", "Milk"] },
+    "🍖 Third Shelf": { top: "45%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu"] },
+    "🥕 Bottom Shelf": { top: "65%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli"] },
+    "🧃 Door Racks": { top: "20%", left: "85%", width: "15%", items: ["Juice", "Butter", "Ketchup"] },
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-200 pt-16">
-      {/* Left Panel - Ingredient Details */}
       {selectedIngredient && (
         <div className="absolute left-5 top-20 w-64 h-40 bg-white shadow-lg rounded-lg p-4">
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
@@ -37,79 +29,78 @@ const Fridge = () => {
           </button>
         </div>
       )}
+
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Virtual Fridge</h2>
 
-      {/* Fridge Container */}
-      <div className="relative w-96 h-[600px] bg-gray-100 rounded-lg shadow-xl flex">
+      <div className="relative w-[800px] h-[526px] rounded-lg">
+        <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
 
-        {/* Main Fridge Section */}
-        <div className="w-2/3 h-full bg-white rounded-l-lg">
-          {Object.entries(fridgeSections).map(([sectionName, items], index) => (
-            <div key={index} className="relative flex flex-wrap justify-center items-center w-full h-1/5 last:border-none bg-gray-300 bg-opacity-30">
-              {/* Shelf Label */}
-              <div className="absolute left-2 top-1 text-gray-700 text-sm font-semibold">{sectionName}</div>
-
-              {/* Ingredient Icons */}
-              {items.length > 0 ? (
-                items.map((item, idx) => (
-                  <div key={idx}
-                    className={`m-2 flex flex-col items-center transition-transform duration-300 ${isHovered == item ? 'scale-110' : ''}`}
-                    onMouseEnter={() => setIsHovered(item)}
-                    onMouseLeave={() => setIsHovered(null)}
-                    onClick={() => setSelectedIngredient(item)}>
-                    <span className="text-3xl">{getIngredientIcon(item)}</span>
-                    <span className="text-xs text-gray-700">{item}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="text-gray-400 text-sm">Empty</span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Door Section */}
-        <div className="w-1/3 h-full bg-gray-200 rounded-r-lg relative">
-          <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 w-4 h-16 bg-gray-500 rounded-lg"></div> {/* Handle */}
-          <div className="flex flex-col h-full justify-evenly p-2">
-            {fridgeSections["🧃 Door Racks"].length > 0 ? (
-              fridgeSections["🧃 Door Racks"].map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center bg-gray-100 rounded-md p-1 shadow">
-                  <span className="text-2xl">{getIngredientIcon(item)}</span>
-                  <span className="text-xs text-gray-700">{item}</span>
+        {Object.entries(positioningConfig).map(([sectionName, config], index) => (
+          <div
+            key={index}
+            className="absolute flex flex-wrap justify-center items-center"
+            style={{
+              top: config.top,
+              left: config.left,
+              width: config.width,
+              transform: "translate(-50%, 0%)",
+            }}
+          >
+            {ingredients.filter((item) => config.items.includes(item)).map((item, idx) => (
+              <div
+                key={idx}
+                className="m-2 flex flex-col items-center cursor-pointer group transition-transform duration-300 hover:scale-110"
+                onClick={() => setSelectedIngredient(item)}
+              >
+                {/* Apply hover effect on the parent div, not the span */}
+                <div className="text-3xl transition-transform group-hover:animate-shake">
+                  {getIngredientIcon(item)}
                 </div>
-              ))
-            ) : (
-              <span className="text-gray-400 text-sm text-center">No Condiments</span>
-            )}
+              </div>
+            ))}
           </div>
-        </div>
+        ))}
       </div>
 
+      {/* CSS Animation for Shaking */}
+      <style>
+        {`
+          @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+            100% { transform: translateX(0); }
+          }
+
+          .animate-shake {
+            animation: shake 0.2s ease-in-out infinite;
+          }
+        `}
+      </style>
     </div>
   );
 };
 
-// Function to return corresponding ingredient icons
 const getIngredientIcon = (item) => {
   const icons = {
-    "Milk": "🥛",
-    "Cheese": "🧀",
-    "Yogurt": "🍦",
-    "Apple": "🍎",
-    "Banana": "🍌",
-    "Orange": "🍊",
-    "Carrot": "🥕",
-    "Broccoli": "🥦",
-    "Lettuce": "🥬",
-    "Eggs": "🥚",
-    "Chicken": "🍗",
-    "Fish": "🐟",
-    "Tofu": "🫛",
-    "Juice": "🧃",
-    "Butter": "🧈",
-    "Ketchup": "🍅",
-    "Cake": "🍰"
+    Milk: "🥛",
+    Cheese: "🧀",
+    Yogurt: "🍦",
+    Apple: "🍎",
+    Banana: "🍌",
+    Orange: "🍊",
+    Carrot: "🥕",
+    Broccoli: "🥦",
+    Lettuce: "🥬",
+    Eggs: "🥚",
+    Chicken: "🍗",
+    Fish: "🐟",
+    Tofu: "🫛",
+    Juice: "🧃",
+    Butter: "🧈",
+    Ketchup: "🍅",
+    Cake: "🍰",
   };
   return icons[item] || "❓";
 };

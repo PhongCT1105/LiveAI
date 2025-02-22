@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   useEffect(() => {
@@ -37,9 +38,11 @@ const Home = () => {
 
       {/* CTA Buttons */}
       <div className="mt-8 flex flex-wrap justify-center gap-4">
-        <button className="bg-blue-500 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition hover:scale-105">
-          Scan Receipt
-        </button>
+        <Link to="/scan">
+          <button className="bg-blue-500 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition hover:scale-105">
+            Scan Receipt
+          </button>
+        </Link>
         <button className="bg-gray-700 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition hover:scale-105">
           Explore Recipes
         </button>
