@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { AiOutlineHome } from "react-icons/ai";
+import { MdOutlineQrCodeScanner, MdKitchen, MdFastfood } from "react-icons/md";
 
 const Navbar = () => {
   return (
@@ -9,10 +11,22 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex space-x-6">
-          <Link to="/" className="text-gray-300 hover:text-white transition">Home</Link>
-          <Link to="/scan" className="text-gray-300 hover:text-white transition">Scan</Link>
-          <Link to="/fridge" className="text-gray-300 hover:text-white transition">Fridge</Link>
-          <Link to="/recipes" className="text-gray-300 hover:text-white transition">Recipes</Link>
+          <Link to="/" className="flex items-center text-gray-300 hover:text-white transition space-x-2">
+            <AiOutlineHome size={20} />
+            <span>Home</span>
+          </Link>
+          <Link to="/scan" className="flex items-center text-gray-300 hover:text-white transition space-x-2">
+            <MdOutlineQrCodeScanner size={20} />
+            <span>Scan</span>
+          </Link>
+          <Link to="/fridge" className="flex items-center text-gray-300 hover:text-white transition space-x-2">
+            <MdKitchen size={20} />
+            <span>Fridge</span>
+          </Link>
+          <Link to="/recipes" className="flex items-center text-gray-300 hover:text-white transition space-x-2">
+            <MdFastfood size={20} />
+            <span>Recipes</span>
+          </Link>
         </div>
       </div>
     </nav>
