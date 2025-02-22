@@ -21,7 +21,7 @@ const Home = () => {
       </div>
 
       {/* Video Section */}
-      <div className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl border border-gray-700">
+      <div className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl">
         <video
           id="homepage-video"
           className="w-full h-full object-cover rounded-lg"
