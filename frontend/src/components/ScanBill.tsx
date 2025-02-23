@@ -42,8 +42,8 @@ const ScanBill = () => {
         console.log("API Response:", responseData); // Debugging API response
 
         // Filter out empty strings or null values before setting state
-        const validIngredients = responseData.ingredients.filter(
-          (item: string) => item.trim() !== ""
+        const validIngredients = (responseData.ingredients ?? []).filter(
+          (item: string) => item?.trim() !== ""
         );
 
         console.log("Filtered Ingredients:", validIngredients); // Debugging filtered output

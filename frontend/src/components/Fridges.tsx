@@ -1,22 +1,43 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react"; // Add useRef and useEffect
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
-// import axios from "axios";
+import axios from "axios";
 
 const Fridge = () => {
   const [ingredients, setIngredients] = useState<string[]>([
     "Fruits", "Milk Products", "Meat", "Vegetables", "Condiments", "Frozen Meat", "Frozen Vegetables",
     "Cake", "Bread", "Cheese", "Eggs", "Butter", "Herbs", "Juice", "Ketchup", "Soy sauce",
-    "Mustard", "Mayonnaise", "Fish", "Tofu"
+    "Mustard", "Mayonnaise", "Fish", "Tofu", "Garlic", "Onion", "Parsley", "Cilantro"
   ]);
   const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
   const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
+  const [newGroup, setNewGroup] = useState("");
+
+  const [ingredientGroups, setIngredientGroups] = useState<Record<string, string[]>>({
+    "Meat": ["Beef", "Pork", "Chicken", "Fish"],
+    "Milk Products": ["Milk", "Yogurt", "Cream"],
+    "Vegetables": ["Carrot", "Lettuce", "Broccoli", "Potato", "Spinach"],
+    "Condiments": ["Salt", "Pepper", "Mustard", "Mayonnaise", "Soy sauce"],
+    "Fruits": ["Apple", "Banana", "Orange"],
+    "Herbs": ["Garlic", "Onion", "Parsley", "Cilantro",]
+  });
+
+  // Ref to measure the height of the quantity card
+  const quantityCardRef = useRef<HTMLDivElement>(null);
+  const [quantityCardHeight, setQuantityCardHeight] = useState(0);
+
+  // Effect to measure the height of the quantity card
+  useEffect(() => {
+    if (quantityCardRef.current) {
+      setQuantityCardHeight(quantityCardRef.current.offsetHeight);
+    }
+  }, [selectedIngredient]); // Re-measure when selectedIngredient changes
 
   const handleAddIngredient = () => {
-    if (newIngredient && newQuantity) {
+    if (newIngredient && newQuantity && newGroup) {
       if (!ingredients.includes(newIngredient)) {
         setIngredients([...ingredients, newIngredient]);
       }
@@ -36,17 +57,23 @@ const Fridge = () => {
 
       setQuantities({
         ...quantities,
-        [newIngredient]: `${totalQuantity}${unit}`,
+        [newIngredient]: `${totalQuantity} ${unit}`,
       });
+
+      // Update ingredientGroups
+      setIngredientGroups((prevGroups) => ({
+        ...prevGroups,
+        [newGroup]: [...(prevGroups[newGroup] || []), newIngredient],
+      }));
 
       setNewIngredient("");
       setNewQuantity("");
+      setNewGroup("");
       setShowAddForm(false);
     }
   };
 
   const handleIngredientClick = (ingredient: string) => {
-    // Find which group the ingredient belongs to
     const groupName = Object.keys(ingredientGroups).find(group =>
       ingredientGroups[group].includes(ingredient)
     );
@@ -78,7 +105,6 @@ const Fridge = () => {
           if (!newIngredients.includes(ingredient)) {
             newIngredients.push(ingredient);
           }
-          // Assuming a default quantity for scanned ingredients
           newQuantities[ingredient] = "1 unit";
         });
 
@@ -98,31 +124,31 @@ const Fridge = () => {
   };
 
   const positioningConfig = {
-    "Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Fruits", "Cake", "Bread"] },
+    "Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Fruits", "Cake", "Juice", "Condiments"] },
     "Second Shelf": { top: "29%", left: "50%", width: "80%", items: ["Milk Products", "Eggs", "Butter", "Cheese"] },
     "Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Meat", "Fish", "Tofu"] },
-    "Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Vegetables", "Herbs", "Condiments"] },
-    "Door Racks": { top: "30%", left: "87%", width: "15%", items: ["Juice", "Ketchup", "Soy sauce", "Mustard", "Mayonnaise"] },
+    "Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Vegetables", "Herbs"] },
     "Freezer": { top: "75%", left: "50%", width: "80%", items: ["Frozen Meat", "Frozen Vegetables"] }
   };
 
-  // Calculate fridge translation based on pop-up visibility
   const fridgeTranslation = () => {
     if (selectedIngredient || showAddForm) {
-      return "translate-x-32"; // Move fridge to the right if one pop-up is visible
+      return "translate-x-32";
     } else {
-      return "translate-x-0"; // No translation if no pop-ups are visible
+      return "translate-x-0";
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-200 pt-16">
-      {/* Quantity Pop-up */}
       {selectedIngredient && (
-        <div className="absolute left-5 top-20 w-75 h-auto bg-white shadow-lg rounded-lg p-4 transition-transform duration-300">
+        <div
+          ref={quantityCardRef}
+          className="absolute left-5 top-20 w-75 h-auto bg-white shadow-lg rounded-lg p-4 transition-transform duration-300"
+          style={{ maxHeight: "200px", overflowY: "auto" }} // Add maxHeight and overflowY
+        >
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
 
-          {/* If selectedIngredient is a group, show all related ingredients */}
           {ingredientGroups[selectedIngredient] ? (
             <ul>
               {ingredientGroups[selectedIngredient].map((item) => (
@@ -144,10 +170,28 @@ const Fridge = () => {
         </div>
       )}
 
-      {/* Add Ingredient Pop-up */}
       {showAddForm && (
-        <div className="absolute left-5 top-1/2 transform -translate-y-1/2 w-75 h-70 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300">
+        <div
+          className="absolute left-5 w-75 h-90 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300"
+          style={{
+            top: selectedIngredient ? `calc(100px + ${quantityCardHeight}px + 16px)` : "50%", // Adjust top position based on quantity card height
+            transform: selectedIngredient ? "translateY(0)" : "translateY(-50%)", // Center if no quantity card
+          }}
+        >
           <h3 className="text-lg font-bold mb-4">Add New Ingredient</h3>
+          <select
+            value={newGroup}
+            onChange={(e) => setNewGroup(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mb-4"
+          >
+            <option value="">Select Group</option>
+            {Object.keys(ingredientGroups).map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+            <option value="new">Create New Group</option>
+          </select>
           <input
             type="text"
             placeholder="Ingredient Name"
@@ -162,6 +206,15 @@ const Fridge = () => {
             onChange={(e) => setNewQuantity(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded mb-4"
           />
+          {newGroup === "new" && (
+            <input
+              type="text"
+              placeholder="New Group Name"
+              value={newGroup}
+              onChange={(e) => setNewGroup(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded mb-4"
+            />
+          )}
           <button
             className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
             onClick={handleAddIngredient}
@@ -186,7 +239,6 @@ const Fridge = () => {
         Add Ingredient
       </button>
 
-      {/* Fridge Container */}
       <div className={`relative w-[800px] h-[526px] rounded-lg transition-transform duration-300 ${fridgeTranslation()}`}>
         <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
 
@@ -221,7 +273,6 @@ const Fridge = () => {
         })}
       </div>
 
-      {/* CSS Animation for Shaking */}
       <style>
         {`
           @keyframes shake {
@@ -239,13 +290,6 @@ const Fridge = () => {
       </style>
     </div>
   );
-};
-
-const ingredientGroups: Record<string, string[]> = {
-  "Meat": ["Beef", "Pork", "Chicken", "Fish"],
-  "Milk Products": ["Milk", "Yogurt", "Cream"],
-  "Vegetables": ["Carrot", "Lettuce", "Broccoli", "Potato", "Spinach"],
-  "Condiments": ["Salt", "Pepper", "Mustard", "Mayonnaise", "Soy sauce"]
 };
 
 const getIngredientIcon = (item: string): string => {
