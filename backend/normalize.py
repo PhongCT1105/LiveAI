@@ -25,12 +25,14 @@ def extract_ocr_ingredients(ocr_text):
     clean_ingredients = set()
     for ingredient in ingredients:
         ingredient = ingredient.strip()
-        match, score, _ = process.extractOne(ingredient, known_ingredients, scorer=fuzz.partial_ratio)
-        if score > 75:  # Threshold for partial matches
-            clean_ingredients.add(match)  # Add to set to avoid duplicates
-            
-    return ', '.join(clean_ingredients) if clean_ingredients else "No Match Found"
+        if ingredient:  # Ensure it's not empty
+            match, score, _ = process.extractOne(ingredient, known_ingredients, scorer=fuzz.partial_ratio)
+            if score > 75:  # Only add if a strong match is found
+                clean_ingredients.add(match)
 
-test_input = "mlk almd"
+    return ', '.join(clean_ingredients)  # Return only valid matches
+
+# Test cases
+test_input = "mlk almd xyz"
 test_output = extract_ocr_ingredients(test_input)
 print(test_output)  # Output: "milk, almond milk"

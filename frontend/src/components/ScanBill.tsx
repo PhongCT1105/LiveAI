@@ -92,9 +92,9 @@ const ScanBill = () => {
 
           <button
             onClick={handleUpload}
-            className={`mt-4 px-6 py-2 rounded-lg text-white flex items-center space-x-2 ${file
-                ? "bg-blue-600 hover:bg-blue-700 transition"
-                : "bg-gray-400 cursor-not-allowed"
+            className={`mt-4 px-6 py-2 rounded-lg text-white ${file
+              ? "bg-blue-600 hover:bg-blue-700 transition"
+              : "bg-gray-400 cursor-not-allowed"
               }`}
             disabled={!file || loading}
           >
