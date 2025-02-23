@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
 import Papa from "papaparse";
 import RecipeCard from "./RecipeCard";
+import RecipeModal from "./RecipeModal"; // Import RecipeModal
 
 // Path to assets
 const CSV_FILE_PATH = "/src/assets/recipes_with_descriptions.csv";
 const IMAGE_PATH = "/src/assets/"; // Ensure images are stored here
 
 const ITEMS_PER_PAGE = 9; // Show 9 recipes per page
+const API_URL = "http://localhost:8000/recipes"; // FastAPI endpoint
 
 const Recipes = () => {
   const [query, setQuery] = useState("");
-  const [recipes, setRecipes] = useState([]);
-  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [recipes, setRecipes] = useState([]); // Stores all recipes from CSV
+  const [filteredRecipes, setFilteredRecipes] = useState([]); // Stores search results
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false); // Track if searching via API
+  const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the modal
 
+  // Fetch and parse CSV file on mount
   useEffect(() => {
-    // Fetch and parse CSV file
     fetch(CSV_FILE_PATH)
       .then((response) => response.text())
       .then((csvText) => {
@@ -26,6 +31,9 @@ const Recipes = () => {
             const formattedRecipes = result.data.map((recipe) => ({
               title: recipe.Title,
               image: `${IMAGE_PATH}${recipe.Image_Name}.jpg`, // Ensure .jpg extension
+              score: null, // Default score for non-searched items
+              ingredients: recipe.Ingredients, // Optional: ingredients from CSV
+              instructions: recipe.Instructions, // Optional: instructions from CSV
             }));
             setRecipes(formattedRecipes);
             setFilteredRecipes(formattedRecipes); // Default to all recipes
@@ -34,26 +42,51 @@ const Recipes = () => {
       });
   }, []);
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setFilteredRecipes(recipes);
-      setCurrentPage(1); // Reset to page 1 when search is cleared
-      return;
+  // Function to submit query to FastAPI and fetch similar recipes
+  const fetchSimilarRecipes = async () => {
+    if (!query.trim()) return; // Prevent empty search
+
+    setLoading(true);
+    setIsSearching(true); // Set searching mode
+    try {
+      const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      // Sort by score (highest first)
+      const sortedResults = data
+        .map((recipe) => ({
+          title: recipe.title,
+          image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
+          score: recipe.score,
+          ingredients: recipe.ingredients, // Add ingredients if available
+          instructions: recipe.instructions, // Add instructions if available
+        }))
+        .sort((a, b) => b.score - a.score); // Ensure descending order by score
+
+      setFilteredRecipes(sortedResults);
+      setCurrentPage(1); // Reset pagination
+    } catch (error) {
+      console.error("Error fetching similar recipes:", error);
+      setFilteredRecipes([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Filter recipes by title
-    const searchResults = recipes
-      .filter((recipe) =>
-        recipe.title.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, 5); // Show only top 5 results in search
+  // Reset search and show all recipes
+  const handleClear = () => {
+    setQuery("");
+    setFilteredRecipes(recipes);
+    setIsSearching(false);
+  };
 
-    setFilteredRecipes(searchResults);
-  }, [query, recipes]);
+  // Separate top 3 recipes
+  const topThreeRecipes = isSearching ? filteredRecipes.slice(0, 3) : [];
+  const remainingRecipes = isSearching ? filteredRecipes.slice(3) : filteredRecipes;
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredRecipes.length / ITEMS_PER_PAGE);
-  const paginatedRecipes = filteredRecipes.slice(
+  // Pagination logic for remaining recipes
+  const totalPages = Math.ceil(remainingRecipes.length / ITEMS_PER_PAGE);
+  const paginatedRecipes = remainingRecipes.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -62,7 +95,7 @@ const Recipes = () => {
     <div className="p-5 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">🍽️ Recipe Explorer</h1>
 
-      {/* Search Bar */}
+      {/* Search Bar with Submit Button */}
       <div className="flex justify-center mb-6">
         <input
           type="text"
@@ -73,19 +106,65 @@ const Recipes = () => {
         />
         <button
           className="ml-3 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          onClick={() => setQuery("")}
+          onClick={fetchSimilarRecipes}
+        >
+          Search
+        </button>
+        <button
+          className="ml-3 p-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+          onClick={handleClear}
         >
           Clear
         </button>
       </div>
 
+      {/* Loading Indicator */}
+      {loading && <p className="text-center text-gray-500">Loading recipes...</p>}
+
+      {/* Highlight Top 3 Recipes */}
+      {isSearching && topThreeRecipes.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-center text-red-600">🔥 Top 3 Recommendations</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+            {topThreeRecipes.map((recipe, index) => (
+              <div
+                key={index}
+                className="relative rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105"
+              >
+                <div className="absolute inset-x-0 top-0 h-2 bg-red-500"></div> {/* Full-width red border */}
+                <RecipeCard
+                  title={recipe.title}
+                  image={recipe.image}
+                  onClick={() => setSelectedRecipe(recipe)} // Open modal on click
+                />
+                {/* Top 3 display "Recommended" instead of score */}
+                <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg text-lg border-2 border-white">
+                  ⭐ Recommended
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recipe Grid (3 Columns per Row) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {paginatedRecipes.length === 0 ? (
+        {paginatedRecipes.length === 0 && !loading ? (
           <p className="text-gray-500 col-span-3 text-center">No recipes found.</p>
         ) : (
           paginatedRecipes.map((recipe, index) => (
-            <RecipeCard key={index} title={recipe.title} image={recipe.image} />
+            <div key={index} className="relative">
+              <RecipeCard
+                title={recipe.title}
+                image={recipe.image}
+                onClick={() => setSelectedRecipe(recipe)} // Open modal on click
+              />
+              {isSearching && recipe.score !== null && (
+                <div className="absolute top-2 left-2 bg-yellow-400 text-black font-bold px-3 py-1 rounded-lg shadow-md">
+                  Score: {recipe.score.toFixed(2)}
+                </div>
+              )}
+            </div>
           ))
         )}
       </div>
@@ -107,6 +186,14 @@ const Recipes = () => {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Recipe Modal for "View More" */}
+      {selectedRecipe && (
+        <RecipeModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
       )}
     </div>
   );
