@@ -3,3 +3,7 @@
 backend/__pycache__
 venv
 backend/venv
+backend/liveai-harvard.json
+liveai-harvard.json
+backend/requirements.txt
+requirements.txt
