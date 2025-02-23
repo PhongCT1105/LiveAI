@@ -125,5 +125,5 @@ def extractData(image_path):
         return None  
 
 
-sample_receipt_path = "/Users/thien/Desktop/CS/Hackathon/Live AI Harvard/LiveAI-1/receipt/test_receipt.jpeg"
+sample_receipt_path = "/Users/ryan/Code/LIVE AI/LiveAI/receipt/grocery-test.png"
 receipt_data = extractData(sample_receipt_path)
