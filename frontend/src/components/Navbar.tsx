@@ -8,7 +8,7 @@ const Navbar = () => {
   const { streak } = useStreak();
 
   return (
-    <nav className="fixed top-0 left-20 w-full h-16 bg-black bg-opacity-80 px-6 shadow-md z-20">
+    <nav className="fixed top-0 left-0 w-full h-16 bg-black bg-opacity-80 px-6 shadow-md z-20">
       <div className="container mx-auto flex justify-between items-center h-full">
         {/* Logo */}
         <h1 className="text-lg font-semibold text-gray-100">FridgeAI</h1>

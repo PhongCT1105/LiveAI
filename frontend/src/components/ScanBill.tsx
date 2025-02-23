@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { scanBill } from "../utils/ocrHelper";
 import { Loader } from "lucide-react"; // Optional: Use an icon library for loading animation
 
 const ScanBill = () => {
@@ -27,15 +26,14 @@ const ScanBill = () => {
   const handleUpload = async () => {
     if (file) {
       setLoading(true);
-      const extracted = await scanBill(file);
-      await delay(3000);
+
       try {
+        const formData = new FormData();
+        formData.append("file", file);
+
         const response = await fetch('http://localhost:8000/scan', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'image/png',
-          },
-          body: JSON.stringify({ key: 'value' }),
+          body: formData,
         });
 
         if (!response.ok) {
@@ -43,14 +41,15 @@ const ScanBill = () => {
         }
 
         const responseData = await response.json();
-        setData(responseData);
-      } catch (e) {
-        setError(e.message);
+        setIngredients(responseData.ingredients);
+      } catch (error) {
+        console.error("Error uploading file:", error);
       } finally {
         setLoading(false);
       }
     }
   };
+
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-100">
