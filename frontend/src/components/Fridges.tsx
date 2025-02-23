@@ -4,7 +4,11 @@ import fridgeImage from "../assets/fridge_empty.png";
 // import axios from "axios";
 
 const Fridge = () => {
-  const [ingredients, setIngredients] = useState<string[]>(getStoredIngredients());
+  const [ingredients, setIngredients] = useState<string[]>([
+    "Fruits", "Milk Products", "Meat", "Vegetables", "Condiments", "Frozen Meat", "Frozen Vegetables",
+    "Cake", "Bread", "Cheese", "Eggs", "Butter", "Herbs", "Juice", "Ketchup", "Soy sauce",
+    "Mustard", "Mayonnaise", "Fish", "Tofu"
+  ]);
   const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
   const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -41,13 +45,65 @@ const Fridge = () => {
     }
   };
 
+  const handleIngredientClick = (ingredient: string) => {
+    // Find which group the ingredient belongs to
+    const groupName = Object.keys(ingredientGroups).find(group =>
+      ingredientGroups[group].includes(ingredient)
+    );
+
+    if (groupName) {
+      setSelectedIngredient(groupName);
+    } else {
+      setSelectedIngredient(ingredient);
+    }
+  };
+
+  const handleScan = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post("http://localhost:8000/scan", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const scannedIngredients = response.data.ingredients;
+      if (scannedIngredients && scannedIngredients.length > 0) {
+        const newIngredients = [...ingredients];
+        const newQuantities = { ...quantities };
+
+        scannedIngredients.forEach((ingredient: string) => {
+          if (!newIngredients.includes(ingredient)) {
+            newIngredients.push(ingredient);
+          }
+          // Assuming a default quantity for scanned ingredients
+          newQuantities[ingredient] = "1 unit";
+        });
+
+        setIngredients(newIngredients);
+        setQuantities(newQuantities);
+      }
+    } catch (error) {
+      console.error("Error scanning receipt:", error);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleScan(file);
+    }
+  };
+
   const positioningConfig = {
-    "🍏 Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
-    "🥚 Second Shelf": { top: "29%", left: "50%", width: "80%", items: ["Eggs", "Cheese", "Milk", "Yogurt"] },
-    "🍖 Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu", "Meat"] },
-    "🥕 Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli", "Potato"] },
-    "🧃 Door Racks": { top: "20%", left: "85%", width: "15%", items: ["Juice", "Butter", "Ketchup"] },
-    "Freezer": { top: "75%", left: "50%", width: "80%", items: ["Frozen", "Frozen", "Frozen", "Frozen"] }
+    "Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Fruits", "Cake", "Bread"] },
+    "Second Shelf": { top: "29%", left: "50%", width: "80%", items: ["Milk Products", "Eggs", "Butter", "Cheese"] },
+    "Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Meat", "Fish", "Tofu"] },
+    "Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Vegetables", "Herbs", "Condiments"] },
+    "Door Racks": { top: "30%", left: "87%", width: "15%", items: ["Juice", "Ketchup", "Soy sauce", "Mustard", "Mayonnaise"] },
+    "Freezer": { top: "75%", left: "50%", width: "80%", items: ["Frozen Meat", "Frozen Vegetables"] }
   };
 
   // Calculate fridge translation based on pop-up visibility
@@ -63,9 +119,22 @@ const Fridge = () => {
     <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-200 pt-16">
       {/* Quantity Pop-up */}
       {selectedIngredient && (
-        <div className="absolute left-5 top-20 w-75 h-40 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300 transform translate-x-0">
+        <div className="absolute left-5 top-20 w-75 h-auto bg-white shadow-lg rounded-lg p-4 transition-transform duration-300">
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
-          <p className="text-gray-700 mt-2">Quantity: {quantities[selectedIngredient] || "Unknown"}</p>
+
+          {/* If selectedIngredient is a group, show all related ingredients */}
+          {ingredientGroups[selectedIngredient] ? (
+            <ul>
+              {ingredientGroups[selectedIngredient].map((item) => (
+                <li key={item} className="text-gray-700 mt-1">
+                  {item}: {quantities[item] || "Unknown"}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-700 mt-2">Quantity: {quantities[selectedIngredient] || "Unknown"}</p>
+          )}
+
           <button
             className="mt-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
             onClick={() => setSelectedIngredient(null)}
@@ -172,29 +241,37 @@ const Fridge = () => {
   );
 };
 
+const ingredientGroups: Record<string, string[]> = {
+  "Meat": ["Beef", "Pork", "Chicken", "Fish"],
+  "Milk Products": ["Milk", "Yogurt", "Cream"],
+  "Vegetables": ["Carrot", "Lettuce", "Broccoli", "Potato", "Spinach"],
+  "Condiments": ["Salt", "Pepper", "Mustard", "Mayonnaise", "Soy sauce"]
+};
+
 const getIngredientIcon = (item: string): string => {
-  const icons: Record<string, string> ={
-    Milk: "🥛",
-    Cheese: "🧀",
-    Yogurt: "🍦",
-    Apple: "🍎",
-    Banana: "🍌",
-    Orange: "🍊",
-    Carrot: "🥕",
-    Broccoli: "🥦",
-    Lettuce: "🥬",
-    Eggs: "🥚",
-    Chicken: "🍗",
-    Meat: "🥩",
-    Fish: "🐟",
-    Tofu: "🫛",
-    Juice: "🧃",
-    Butter: "🧈",
-    Ketchup: "🍅",
-    Cake: "🍰",
-    Frozen: "🥶",
-    Potato: "🥔"
+  const icons: Record<string, string> = {
+    "Meat": "🥩",
+    "Fish": "🐟",
+    "Milk Products": "🥛",
+    "Vegetables": "🥬",
+    "Condiments": "🧂",
+    "Fruits": "🍎",
+    "Frozen Meat": "❄️",
+    "Frozen Vegetables": "🥦",
+    "Cake": "🍰",
+    "Bread": "🍞",
+    "Cheese": "🧀",
+    "Eggs": "🥚",
+    "Butter": "🧈",
+    "Herbs": "🌿",
+    "Juice": "🧃",
+    "Ketchup": "🍅",
+    "Soy sauce": "🥢",
+    "Mustard": "🌭",
+    "Mayonnaise": "🥪",
+    "Tofu": "🫛"
   };
+
   return icons[item] || "❓";
 };
 
