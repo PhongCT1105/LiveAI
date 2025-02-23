@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 interface RecipeCardProps {
   title: string;
@@ -8,23 +9,32 @@ interface RecipeCardProps {
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ title, image, onClick }) => {
   return (
-    <div className="h-[365px] bg-white rounded-2xl shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg">
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-lg"
+    >
+      {/* Image Section */}
       <img
         src={image}
         alt={title}
         className="w-full h-44 object-cover"
         onError={(e) => (e.currentTarget.src = "/src/assets/default.jpg")} // Fallback image
       />
-      <div className="p-4 text-center">
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+
+      {/* Content Section */}
+      <div className="p-4 flex flex-col items-center text-center">
+        <h2 className="text-lg font-semibold text-gray-900 h-20 overflow-hidden text-ellipsis line-clamp-2">
+          {title}
+        </h2>
         <button
-          className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 transition"
-          onClick={onClick} // Open modal when clicked
+          className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition"
+          onClick={onClick}
         >
-          View More
+          View Recipe
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

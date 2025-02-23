@@ -1,5 +1,11 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const transitionSettings = {
+  duration: 0.7,
+  ease: [0.25, 0.1, 0.25, 1], // Smooth cubic bezier easing for a natural look
+};
 
 const Home = () => {
   useEffect(() => {
@@ -10,19 +16,35 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={transitionSettings}
+      className="h-screen w-screen flex flex-col items-center justify-center px-6 text-center bg-gradient-to-b from-black to-gray-900 text-white"
+    >
       {/* Title & Description Section */}
-      <div className="max-w-2xl w-full px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...transitionSettings, delay: 0.2 }}
+        className="max-w-2xl w-full px-4"
+      >
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           Welcome to <span className="text-gray-400">FridgeAI</span>
         </h1>
         <p className="text-lg md:text-xl mt-3 text-gray-300 leading-normal">
           Scan your shopping bill, track your fridge, and get personalized recipe suggestions effortlessly.
         </p>
-      </div>
+      </motion.div>
 
       {/* Video Section */}
-      <div className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl border border-gray-700">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ ...transitionSettings, delay: 0.4 }}
+        className="mt-8 w-full max-w-xl lg:max-w-2xl h-56 md:h-64 rounded-lg overflow-hidden shadow-xl border border-gray-700"
+      >
         <video
           id="homepage-video"
           className="w-full h-full object-cover rounded-lg"
@@ -34,22 +56,37 @@ const Home = () => {
           <source src="/homepage.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-      </div>
+      </motion.div>
 
       {/* CTA Buttons */}
-      <div className="mt-8 flex flex-wrap justify-center gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...transitionSettings, delay: 0.6 }}
+        className="mt-8 flex flex-wrap justify-center gap-4"
+      >
         <Link to="/scan">
-          <button className="bg-blue-500 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition hover:scale-105">
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="bg-blue-500 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition"
+          >
             Scan Receipt
-          </button>
+          </motion.button>
         </Link>
         <Link to="/recipes">
-          <button className="bg-gray-700 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition hover:scale-105">
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gray-700 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition"
+          >
             Explore Recipes
-          </button>
+          </motion.button>
         </Link>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -1,7 +1,7 @@
-// RecipeModal.tsx
 import React from "react";
 import RecipeInstructions from "./RecipeInstructions";
 import { useStreak } from "./Streak";
+import { useIngredients, getStoredIngredients } from "../utils/fridgeHelper";
 
 interface RecipeModalProps {
   recipe: {
@@ -13,15 +13,29 @@ interface RecipeModalProps {
   onClose: () => void;
 }
 
+// Updated helper function using substring matching
+const getIngredientRatio = (ingredients: string): string => {
+  const requiredIngredients = ingredients.split(",").map(item => item.trim().toLowerCase());
+  const stored = getStoredIngredients().map(item => item.toLowerCase());
+  const availableCount = requiredIngredients.filter(item =>
+    stored.some(storedItem => item.includes(storedItem))
+  ).length;
+  return `${availableCount}/${requiredIngredients.length}`;
+};
+
 const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
   const { incrementStreak } = useStreak();
 
   if (!recipe) return null;
 
   const handleUseRecipe = () => {
-    incrementStreak();
-    onClose();
-    alert(`Using recipe: ${recipe.title}`);
+    const usedIngredients = recipe.ingredients
+      .split(",")
+      .map((ingredient) => ingredient.trim());
+    useIngredients(usedIngredients); // Reduce ingredient quantities
+    incrementStreak(); // Increase user streak
+    onClose(); // Close modal
+    alert(`Used recipe: ${recipe.title}`);
   };
 
   return (
@@ -39,25 +53,36 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
         <div className="flex flex-col md:flex-row h-full">
           {/* Left: Image Section */}
           <div className="w-full md:w-1/2 h-60 md:h-full flex items-center justify-center bg-gray-200 bg-opacity-30 rounded-lg">
-            <img src={recipe.image} alt={recipe.title} className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
+            <img
+              src={recipe.image}
+              alt={recipe.title}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-md"
+            />
           </div>
 
           {/* Right: Recipe Details */}
           <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto">
-            <h2 className="text-4xl font-bold text-gray-900 text-center">{recipe.title}</h2>
+            <h2 className="text-4xl font-bold text-gray-900 text-center">
+              {recipe.title}
+            </h2>
 
             {/* Ingredients Section */}
-            <h3 className="text-2xl font-semibold text-gray-800 mt-6">🛒 Ingredients</h3>
+            <h3 className="text-2xl font-semibold text-gray-800 mt-6">
+              🛒 Ingredients
+            </h3>
+            <p className="text-lg text-gray-600 mb-2">
+              Available: {getIngredientRatio(recipe.ingredients)}
+            </p>
             <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
               {recipe.ingredients.split(",").map((ingredient, index) => (
-                <li key={index}>
-                  {ingredient.trim().replace(/^\[|\]$/g, '')}
-                </li>
+                <li key={index}>{ingredient.trim()}</li>
               ))}
             </ul>
 
             {/* Instructions Section */}
-            <h3 className="text-2xl font-semibold text-gray-800 mt-6">👩‍🍳 Instructions</h3>
+            <h3 className="text-2xl font-semibold text-gray-800 mt-6">
+              👩‍🍳 Instructions
+            </h3>
             <RecipeInstructions instructions={recipe.instructions} />
 
             {/* Action Buttons */}

@@ -1,66 +1,57 @@
-export const getStoredIngredients = () => {
-  return [
-    "Apple", "Banana", "Orange",  // Fruits
-    "Eggs", "Milk", "Cheese", "Yogurt", "Butter",  // Milk Products
-    "Chicken", "Beef", "Pork", "Fish", "Tofu",  // Protein
-    "Carrot", "Broccoli", "Lettuce", "Potato", "Spinach",  // Vegetables
-    "Garlic", "Onion", "Parsley", "Cilantro",  // Herbs
-    "Salt", "Pepper", "Soy sauce", "Ketchup", "Mustard", "Mayonnaise", "Vinegar",  // Condiments
-    "Juice", "Cake", "Bread",  // Other
-    "Frozen Meat", "Frozen Vegetables"  // Freezer Items
-  ];
+// ingredients.ts
+
+export const getStoredIngredients = (): string[] => {
+  return Object.keys(getIngredientQuantities()); // Get ingredient names
 };
 
-export const getIngredientQuantities = () => {
+// Retrieve ingredient quantities from localStorage or default values
+export const getIngredientQuantities = (): Record<string, number> => {
+  const storedData = localStorage.getItem("ingredientQuantities");
+  if (storedData) {
+    return JSON.parse(storedData);
+  }
   return {
-    // Fruits
-    "Apple": "3 pcs",
-    "Banana": "2 pcs",
-    "Orange": "4 pcs",
-
-    // Milk Products
-    "Milk": "1L",
-    "Cheese": "200g",
-    "Yogurt": "1 cup",
-    "Butter": "100g",
-
-    // Protein
-    "Eggs": "6 pcs",
-    "Chicken": "500g",
-    "Beef": "400g",
-    "Pork": "350g",
-    "Fish": "300g",
-    "Tofu": "250g",
-
-    // Vegetables
-    "Carrot": "2 pcs",
-    "Broccoli": "1 head",
-    "Lettuce": "1 bunch",
-    "Potato": "3 pcs",
-    "Spinach": "1 bunch",
-
-    // Herbs
-    "Garlic": "5 cloves",
-    "Onion": "2 bulbs",
-    "Parsley": "1 bunch",
-    "Cilantro": "1 bunch",
-
-    // Condiments
-    "Salt": "1 tsp",
-    "Pepper": "1 tsp",
-    "Soy sauce": "500ml",
-    "Ketchup": "500ml",
-    "Mustard": "300ml",
-    "Mayonnaise": "400ml",
-    "Vinegar": "250ml",
-
-    // Other
-    "Juice": "1L",
-    "Cake": "1 slice",
-    "Bread": "1 loaf",
-
-    // Freezer Items
-    "Frozen Meat": "3 packets",
-    "Frozen Vegetables": "2 packets"
+    Milk: 1,
+    Cheese: 1,
+    Yogurt: 1,
+    Apple: 3,
+    Banana: 2,
+    Orange: 4,
+    Carrot: 2,
+    Broccoli: 1,
+    Lettuce: 1,
+    Eggs: 6,
+    Chicken: 1,
+    Fish: 1,
+    Tofu: 1,
+    Juice: 1,
+    Butter: 1,
+    Ketchup: 1,
+    Cake: 1,
+    Frozen: 3,
   };
+};
+
+// Reduce ingredient quantity by 1
+export const useIngredients = (usedIngredients: string[]) => {
+  const quantities = getIngredientQuantities();
+
+  usedIngredients.forEach((ingredient) => {
+    const formattedIngredient = ingredient.trim().toLowerCase();
+
+    // Find matching ingredient in stored list
+    const foundIngredient = Object.keys(quantities).find(
+      (stored) => stored.toLowerCase() === formattedIngredient
+    );
+
+    if (foundIngredient) {
+      // Reduce by 1, remove if 0
+      quantities[foundIngredient] = Math.max(0, quantities[foundIngredient] - 1);
+      if (quantities[foundIngredient] === 0) {
+        delete quantities[foundIngredient];
+      }
+    }
+  });
+
+  localStorage.setItem("ingredientQuantities", JSON.stringify(quantities)); // Save updated data
 };
