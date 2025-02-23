@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState,  useCallback } from "react";
 import VoiceControl from "./VoiceControl";
 
 interface RecipeInstructionsProps {

@@ -3,13 +3,13 @@ import { scanBill } from "../utils/ocrHelper";
 import { Loader } from "lucide-react"; // Optional: Use an icon library for loading animation
 
 const ScanBill = () => {
-  const [file, setFile] = useState(null);
-  const [ingredients, setIngredients] = useState([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [ingredients, setIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
     }
@@ -17,7 +17,9 @@ const ScanBill = () => {
 
   const handleRemoveFile = () => {
     setFile(null);
-    fileInputRef.current.value = "";
+    if (fileInputRef.current){
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleUpload = async () => {
@@ -49,7 +51,7 @@ const ScanBill = () => {
             </div>
           ) : (
             <button
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => fileInputRef.current?.click()}
               className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
             >
               Choose File

@@ -4,6 +4,11 @@ interface VoiceControlProps {
   onCommand: (command: string) => void;
 }
 
+interface MySpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
 const VoiceControl: React.FC<VoiceControlProps> = ({ onCommand }) => {
   const [isListening, setIsListening] = useState(false);
 
@@ -22,7 +27,7 @@ const VoiceControl: React.FC<VoiceControlProps> = ({ onCommand }) => {
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: MySpeechRecognitionEvent) => {
       let transcript = event.results[event.resultIndex][0].transcript.toLowerCase();
       console.log("Voice Input:", transcript);
       if (transcript.includes("play instruction")) onCommand("play instruction");

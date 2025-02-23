@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
+// import axios from "axios";
 
 const Fridge = () => {
-  const [ingredients, setIngredients] = useState(getStoredIngredients());
-  const [quantities, setQuantities] = useState(getIngredientQuantities());
-  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [ingredients, setIngredients] = useState<string[]>(getStoredIngredients());
+  const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
+  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
@@ -16,7 +17,7 @@ const Fridge = () => {
         setIngredients([...ingredients, newIngredient]);
       }
 
-      const extractNumber = (str) => {
+      const extractNumber = (str: string): number => {
         const match = str.match(/\d+/);
         return match ? Number(match[0]) : 0;
       };
@@ -120,7 +121,7 @@ const Fridge = () => {
       <div className={`relative w-[800px] h-[526px] rounded-lg transition-transform duration-300 ${fridgeTranslation()}`}>
         <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
 
-        {Object.entries(positioningConfig).map(([sectionName, config], index) => {
+        {Object.entries(positioningConfig).map(([_sectionName, config], index) => {
           const itemsInSection = ingredients.filter((item) => config.items.includes(item));
           const isOdd = itemsInSection.length % 2 !== 0;
 
@@ -171,8 +172,8 @@ const Fridge = () => {
   );
 };
 
-const getIngredientIcon = (item) => {
-  const icons = {
+const getIngredientIcon = (item: string): string => {
+  const icons: Record<string, string> ={
     Milk: "🥛",
     Cheese: "🧀",
     Yogurt: "🍦",
