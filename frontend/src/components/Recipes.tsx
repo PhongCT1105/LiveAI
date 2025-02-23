@@ -10,14 +10,37 @@ const IMAGE_PATH = "/src/assets/"; // Ensure images are stored here
 const ITEMS_PER_PAGE = 9; // Show 9 recipes per page
 const API_URL = "http://localhost:8000/recipes"; // FastAPI endpoint
 
+interface Recipe {
+  title: string;
+  image: string;
+  score: number | null;
+  ingredients: string;
+  instructions: string;
+}
+
+interface RecipeCSVRow {
+  Title: string;
+  Image_Name: string;
+  Ingredients: string;
+  Instructions: string;
+}
+
+interface FetchRecipe {
+  title: string,
+  image_name: string,
+  score: number;
+  ingredient: string,
+  instructions: string,
+}
+
 const Recipes = () => {
   const [query, setQuery] = useState("");
-  const [recipes, setRecipes] = useState([]); // Stores all recipes from CSV
-  const [filteredRecipes, setFilteredRecipes] = useState([]); // Stores search results
+  const [recipes, setRecipes] = useState<Recipe[]>([]); // Stores all recipes from CSV
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]); // Stores search results
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false); // Track if searching via API
-  const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the modal
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe|null>(null); // State for the modal
 
   // Fetch and parse CSV file on mount
   useEffect(() => {
@@ -28,7 +51,8 @@ const Recipes = () => {
           header: true,
           skipEmptyLines: true,
           complete: (result) => {
-            const formattedRecipes = result.data.map((recipe) => ({
+            const data = result.data as RecipeCSVRow[];
+            const formattedRecipes = data.map((recipe: RecipeCSVRow) => ({
               title: recipe.Title,
               image: `${IMAGE_PATH}${recipe.Image_Name}.jpg`, // Ensure .jpg extension
               score: null, // Default score for non-searched items
@@ -53,12 +77,12 @@ const Recipes = () => {
       const data = await response.json();
 
       // Sort by score (highest first)
-      const sortedResults = data
-        .map((recipe) => ({
+      const sortedResults = (data as FetchRecipe[])
+        .map((recipe: FetchRecipe) => ({
           title: recipe.title,
           image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
           score: recipe.score,
-          ingredients: recipe.ingredients, // Add ingredients if available
+          ingredients: recipe.ingredient, // Add ingredients if available
           instructions: recipe.instructions, // Add instructions if available
         }))
         .sort((a, b) => b.score - a.score); // Ensure descending order by score
