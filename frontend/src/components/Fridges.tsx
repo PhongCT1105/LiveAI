@@ -7,6 +7,9 @@ const Fridge = () => {
   const [ingredients, setIngredients] = useState(getStoredIngredients());
   const [quantities, setQuantities] = useState(getIngredientQuantities());
   const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newIngredient, setNewIngredient] = useState("");
+  const [newQuantity, setNewQuantity] = useState("");
 
   // useEffect(() => {
   //   // Fetch data from the backend
@@ -22,6 +25,42 @@ const Fridge = () => {
 
   //   fetchData();
   // }, []);
+  const handleAddIngredient = () => {
+    if (newIngredient && newQuantity) {
+      // Update ingredients list
+      if (!ingredients.includes(newIngredient)) {
+        setIngredients([...ingredients, newIngredient]);
+      }
+
+      // Extract numbers from the quantities
+      const extractNumber = (str: string): number => {
+        const match = str.match(/\d+/); // Extract first number in the string
+        return match ? Number(match[0]) : 0;
+      };
+
+      const newQuantNum = extractNumber(newQuantity);
+      const existingQuantNum = extractNumber(quantities[newIngredient] ?? "0");
+
+      // Sum up the quantities
+      const totalQuantity = newQuantNum + existingQuantNum;
+
+      // Preserve the unit (assuming both have the same unit)
+      const unitMatch = newQuantity.match(/[a-zA-Z]+/);
+      const unit = unitMatch ? unitMatch[0] : "";
+
+      // Update quantities
+      setQuantities({
+        ...quantities,
+        [newIngredient]: `${totalQuantity}${unit}`,
+      });
+
+      // Clear the form
+      setNewIngredient("");
+      setNewQuantity("");
+      setShowAddForm(false);
+    }
+  };
+
 
   const positioningConfig = {
     "🍏 Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
@@ -48,6 +87,45 @@ const Fridge = () => {
       )}
 
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Virtual Fridge</h2>
+
+      <button
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+        onClick={() => setShowAddForm(true)}
+      >
+        Add Ingredient
+      </button>
+
+      {showAddForm && (
+        <div className="z-80 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-bold mb-4">Add New Ingredient</h3>
+          <input
+            type="text"
+            placeholder="Ingredient Name"
+            value={newIngredient}
+            onChange={(e) => setNewIngredient(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mb-4"
+          />
+          <input
+            type="text"
+            placeholder="Quantity"
+            value={newQuantity}
+            onChange={(e) => setNewQuantity(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mb-4"
+          />
+          <button
+            className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+            onClick={handleAddIngredient}
+          >
+            Add
+          </button>
+          <button
+            className="w-full mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            onClick={() => setShowAddForm(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       <div className="relative w-[800px] h-[526px] rounded-lg">
         <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
