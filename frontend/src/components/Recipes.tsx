@@ -15,6 +15,7 @@ const Recipes = () => {
   const [filteredRecipes, setFilteredRecipes] = useState([]); // Stores search results
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false); // Track if searching via API
 
   // Fetch and parse CSV file on mount
   useEffect(() => {
@@ -28,6 +29,7 @@ const Recipes = () => {
             const formattedRecipes = result.data.map((recipe) => ({
               title: recipe.Title,
               image: `${IMAGE_PATH}${recipe.Image_Name}.jpg`, // Ensure .jpg extension
+              score: null, // Default score for non-searched items
             }));
             setRecipes(formattedRecipes);
             setFilteredRecipes(formattedRecipes); // Default to all recipes
@@ -41,17 +43,21 @@ const Recipes = () => {
     if (!query.trim()) return; // Prevent empty search
 
     setLoading(true);
+    setIsSearching(true); // Set searching mode
     try {
       const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
       const data = await response.json();
 
-      // Format returned recipes for display
-      const formattedResults = data.map((recipe) => ({
-        title: recipe.title,
-        image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
-      }));
+      // Sort by score (highest first)
+      const sortedResults = data
+        .map((recipe) => ({
+          title: recipe.title,
+          image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
+          score: recipe.score,
+        }))
+        .sort((a, b) => b.score - a.score); // Ensure descending order by score
 
-      setFilteredRecipes(formattedResults);
+      setFilteredRecipes(sortedResults);
       setCurrentPage(1); // Reset pagination
     } catch (error) {
       console.error("Error fetching similar recipes:", error);
@@ -61,9 +67,20 @@ const Recipes = () => {
     }
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredRecipes.length / ITEMS_PER_PAGE);
-  const paginatedRecipes = filteredRecipes.slice(
+  // Reset search and show all recipes
+  const handleClear = () => {
+    setQuery("");
+    setFilteredRecipes(recipes);
+    setIsSearching(false);
+  };
+
+  // Separate top 3 recipes
+  const topThreeRecipes = isSearching ? filteredRecipes.slice(0, 3) : [];
+  const remainingRecipes = isSearching ? filteredRecipes.slice(3) : filteredRecipes;
+
+  // Pagination logic for remaining recipes
+  const totalPages = Math.ceil(remainingRecipes.length / ITEMS_PER_PAGE);
+  const paginatedRecipes = remainingRecipes.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -89,10 +106,7 @@ const Recipes = () => {
         </button>
         <button
           className="ml-3 p-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
-          onClick={() => {
-            setQuery("");
-            setFilteredRecipes(recipes); // Restore all recipes
-          }}
+          onClick={handleClear}
         >
           Clear
         </button>
@@ -101,13 +115,38 @@ const Recipes = () => {
       {/* Loading Indicator */}
       {loading && <p className="text-center text-gray-500">Loading recipes...</p>}
 
+      {/* Highlight Top 3 Recipes */}
+      {isSearching && topThreeRecipes.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-center text-red-600">🔥 Top 3 Recommendations</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
+            {topThreeRecipes.map((recipe, index) => (
+              <div key={index} className="relative border-4 border-red-500 p-2 rounded-lg shadow-lg">
+                <RecipeCard title={recipe.title} image={recipe.image} />
+                {/* Top 3 display "Recommended" instead of score */}
+                <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg text-lg border-2 border-white">
+                  ⭐ Recommended
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recipe Grid (3 Columns per Row) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {paginatedRecipes.length === 0 && !loading ? (
           <p className="text-gray-500 col-span-3 text-center">No recipes found.</p>
         ) : (
           paginatedRecipes.map((recipe, index) => (
-            <RecipeCard key={index} title={recipe.title} image={recipe.image} />
+            <div key={index} className="relative">
+              <RecipeCard title={recipe.title} image={recipe.image} />
+              {isSearching && recipe.score !== null && (
+                <div className="absolute top-2 left-2 bg-yellow-400 text-black font-bold px-3 py-1 rounded-lg shadow-md">
+                  Score: {recipe.score.toFixed(2)}
+                </div>
+              )}
+            </div>
           ))
         )}
       </div>
