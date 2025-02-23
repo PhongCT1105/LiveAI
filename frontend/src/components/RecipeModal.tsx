@@ -1,5 +1,7 @@
+// RecipeModal.tsx
 import React from "react";
 import RecipeInstructions from "./RecipeInstructions";
+import { useStreak } from "./Streak";
 
 interface RecipeModalProps {
   recipe: {
@@ -12,9 +14,12 @@ interface RecipeModalProps {
 }
 
 const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
+  const { incrementStreak } = useStreak();
+
   if (!recipe) return null;
 
   const handleUseRecipe = () => {
+    incrementStreak();
     onClose();
     alert(`Using recipe: ${recipe.title}`);
   };
