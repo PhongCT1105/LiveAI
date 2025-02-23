@@ -8,6 +8,8 @@ const ScanBill = () => {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
@@ -26,8 +28,27 @@ const ScanBill = () => {
     if (file) {
       setLoading(true);
       const extracted = await scanBill(file);
-      setIngredients(extracted);
-      setLoading(false);
+      await delay(3000);
+      try {
+        const response = await fetch('http://localhost:8000/scan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'image/png',
+          },
+          body: JSON.stringify({ key: 'value' }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        setData(responseData);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
