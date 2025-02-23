@@ -29,7 +29,7 @@ const ScanBill = () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await fetch("http://localhost:8000/scan", {
+        const response = await fetch("https://liveai.onrender.com/scan", {
           method: "POST",
           body: formData,
         });

@@ -9,7 +9,7 @@ const CSV_FILE_PATH = "/src/assets/recipes_with_descriptions.csv";
 const IMAGE_PATH = "/src/assets/"; // Ensure images are stored here
 
 const ITEMS_PER_PAGE = 9; // Show 9 recipes per page
-const API_URL = "http://localhost:8000/recipes"; // FastAPI endpoint
+const API_URL = "https://liveai.onrender.com/recipes"; // FastAPI endpoint
 
 interface Recipe {
   title: string;

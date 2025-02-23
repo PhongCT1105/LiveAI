@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react"; // Add useRef and useEffect
-import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
+import { getIngredientQuantities } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
-import axios from "axios";
 
 const Fridge = () => {
   const [ingredients, setIngredients] = useState<string[]>([
@@ -9,8 +8,13 @@ const Fridge = () => {
     "Cake", "Bread", "Cheese", "Eggs", "Butter", "Herbs", "Juice", "Ketchup", "Soy sauce",
     "Mustard", "Mayonnaise", "Fish", "Tofu", "Garlic", "Onion", "Parsley", "Cilantro"
   ]);
-  const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
-  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
+  
+  const [quantities, setQuantities] = useState<Record<string, string>>(
+    Object.fromEntries(
+      Object.entries(getIngredientQuantities()).map(([key, value]) => [key, String(value)])
+    )
+  );
+    const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
@@ -73,55 +77,6 @@ const Fridge = () => {
     }
   };
 
-  const handleIngredientClick = (ingredient: string) => {
-    const groupName = Object.keys(ingredientGroups).find(group =>
-      ingredientGroups[group].includes(ingredient)
-    );
-
-    if (groupName) {
-      setSelectedIngredient(groupName);
-    } else {
-      setSelectedIngredient(ingredient);
-    }
-  };
-
-  const handleScan = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await axios.post("http://localhost:8000/scan", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      const scannedIngredients = response.data.ingredients;
-      if (scannedIngredients && scannedIngredients.length > 0) {
-        const newIngredients = [...ingredients];
-        const newQuantities = { ...quantities };
-
-        scannedIngredients.forEach((ingredient: string) => {
-          if (!newIngredients.includes(ingredient)) {
-            newIngredients.push(ingredient);
-          }
-          newQuantities[ingredient] = "1 unit";
-        });
-
-        setIngredients(newIngredients);
-        setQuantities(newQuantities);
-      }
-    } catch (error) {
-      console.error("Error scanning receipt:", error);
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleScan(file);
-    }
-  };
 
   const positioningConfig = {
     "Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Fruits", "Cake", "Juice", "Condiments"] },
