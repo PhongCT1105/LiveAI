@@ -1,8 +1,12 @@
+// Navbar.tsx
 import { Link } from "react-router-dom";
 import { AiOutlineHome } from "react-icons/ai";
 import { MdOutlineQrCodeScanner, MdKitchen, MdFastfood } from "react-icons/md";
+import { useStreak } from "./Streak";
 
 const Navbar = () => {
+  const { streak } = useStreak();
+
   return (
     <nav className="fixed top-0 left-0 w-full h-16 bg-black bg-opacity-80 px-6 shadow-md z-20">
       <div className="container mx-auto flex justify-between items-center h-full">
@@ -10,7 +14,7 @@ const Navbar = () => {
         <h1 className="text-lg font-semibold text-gray-100">FridgeAI</h1>
 
         {/* Navigation Links */}
-        <div className="hidden md:flex space-x-6">
+        <div className="hidden md:flex space-x-6 items-center">
           <Link to="/" className="flex items-center text-gray-300 hover:text-white transition space-x-2">
             <AiOutlineHome size={20} />
             <span>Home</span>
@@ -27,6 +31,12 @@ const Navbar = () => {
             <MdFastfood size={20} />
             <span>Recipes</span>
           </Link>
+
+          {/* Streak Display */}
+          <div className="flex items-center space-x-2">
+            <span className="text-gray-300">🔥 Streak:</span>
+            <span className="text-white font-semibold">{streak}</span>
+          </div>
         </div>
       </div>
     </nav>
