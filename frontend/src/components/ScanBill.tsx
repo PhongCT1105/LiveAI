@@ -17,7 +17,7 @@ const ScanBill = () => {
 
   const handleRemoveFile = () => {
     setFile(null);
-    if (fileInputRef.current){
+    if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
