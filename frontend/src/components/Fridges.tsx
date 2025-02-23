@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
+import axios from "axios";
 
 const Fridge = () => {
   const [ingredients, setIngredients] = useState(getStoredIngredients());
   const [quantities, setQuantities] = useState(getIngredientQuantities());
   const [selectedIngredient, setSelectedIngredient] = useState(null);
 
+  // useEffect(() => {
+  //   // Fetch data from the backend
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.get("/api/ingredients"); // Replace with your API endpoint
+  //       setIngredients(response.data.ingredients);
+  //       setQuantities(response.data.quantities);
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
   const positioningConfig = {
-    "🍏 Top Shelf": { top: "17%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
-    "🥚 Second Shelf": { top: "25%", left: "50%", width: "80%", items: ["Eggs", "Cheese", "Milk"] },
-    "🍖 Third Shelf": { top: "45%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu"] },
-    "🥕 Bottom Shelf": { top: "65%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli"] },
+    "🍏 Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
+    "🥚 Second Shelf": { top: "29%", left: "50%", width: "80%", items: ["Eggs", "Cheese", "Milk", "Yogurt"] },
+    "🍖 Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu"] },
+    "🥕 Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli"] },
     "🧃 Door Racks": { top: "20%", left: "85%", width: "15%", items: ["Juice", "Butter", "Ketchup"] },
+    "Freezer": { top: "75%", left: "50%", width: "80%", items: ["Frozen", "Frozen", "Frozen", "Frozen"] }
   };
 
   return (
@@ -35,31 +52,35 @@ const Fridge = () => {
       <div className="relative w-[800px] h-[526px] rounded-lg">
         <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
 
-        {Object.entries(positioningConfig).map(([sectionName, config], index) => (
-          <div
-            key={index}
-            className="absolute flex flex-wrap justify-center items-center"
-            style={{
-              top: config.top,
-              left: config.left,
-              width: config.width,
-              transform: "translate(-50%, 0%)",
-            }}
-          >
-            {ingredients.filter((item) => config.items.includes(item)).map((item, idx) => (
-              <div
-                key={idx}
-                className="m-2 flex flex-col items-center cursor-pointer group transition-transform duration-300 hover:scale-110"
-                onClick={() => setSelectedIngredient(item)}
-              >
-                {/* Apply hover effect on the parent div, not the span */}
-                <div className="text-3xl transition-transform group-hover:animate-shake">
-                  {getIngredientIcon(item)}
+        {Object.entries(positioningConfig).map(([sectionName, config], index) => {
+          const itemsInSection = ingredients.filter((item) => config.items.includes(item));
+          const isOdd = itemsInSection.length % 2 !== 0;
+
+          return (
+            <div
+              key={index}
+              className={`absolute flex flex-wrap justify-center items-center ${isOdd ? "-translate-x-12" : ""}`}
+              style={{
+                top: config.top,
+                left: config.left,
+                width: config.width,
+                transform: "translate(-50%, -29%)",
+              }}
+            >
+              {itemsInSection.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`m-2 flex flex-col items-center cursor-pointer group transition-transform duration-300 hover:scale-110`}
+                  onClick={() => setSelectedIngredient(item)}
+                >
+                  <div className="text-[40px] w-[80px] h-[80px] flex items-center justify-center transition-transform group-hover:animate-shake">
+                    {getIngredientIcon(item)}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ))}
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       {/* CSS Animation for Shaking */}
@@ -101,6 +122,7 @@ const getIngredientIcon = (item) => {
     Butter: "🧈",
     Ketchup: "🍅",
     Cake: "🍰",
+    Frozen: "🥶",
   };
   return icons[item] || "❓";
 };
