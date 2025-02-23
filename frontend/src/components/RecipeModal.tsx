@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // ONLY import this in the modal
 
 interface RecipeModalProps {
   recipe: {
@@ -13,14 +14,19 @@ interface RecipeModalProps {
 const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
   if (!recipe) return null;
 
-  // Close modal when clicking on the overlay
+  const navigate = useNavigate(); // useNavigate is only used here in the modal
+
   const handleOverlayClick = () => {
     onClose();
   };
 
-  // Prevent closing when clicking inside the modal content
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+  };
+
+  const handleUseRecipe = () => {
+    onClose();
+    alert(`Using recipe: ${recipe.title}`);
   };
 
   return (
@@ -29,10 +35,10 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
       onClick={handleOverlayClick}
     >
       <div
-        className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full relative transform transition-all duration-300"
+        className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full max-h-screen overflow-y-auto relative transform transition-all duration-300"
         onClick={handleModalClick}
       >
-        {/* Modern Close Icon */}
+        {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none"
           onClick={onClose}
@@ -47,12 +53,23 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+
         <h2 className="text-2xl font-bold text-gray-800 mb-4">{recipe.title}</h2>
         <img src={recipe.image} alt={recipe.title} className="w-full h-44 object-cover rounded-md mb-4" />
+
         <h3 className="text-lg font-semibold text-gray-700">Ingredients:</h3>
         <p className="text-gray-600 mb-2">{recipe.ingredients}</p>
+
         <h3 className="text-lg font-semibold text-gray-700">Instructions:</h3>
         <p className="text-gray-600 mb-4">{recipe.instructions}</p>
+
+        {/* Use Recipe Button */}
+        <button
+          className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-700 transition duration-200"
+          onClick={handleUseRecipe}
+        >
+          Use This Recipe
+        </button>
       </div>
     </div>
   );
