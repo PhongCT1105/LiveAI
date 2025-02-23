@@ -43,9 +43,11 @@ const Home = () => {
             Scan Receipt
           </button>
         </Link>
-        <button className="bg-gray-700 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition hover:scale-105">
-          Explore Recipes
-        </button>
+        <Link to="/recipes">
+          <button className="bg-gray-700 text-white text-lg font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-600 transition hover:scale-105">
+            Explore Recipes
+          </button>
+        </Link>
       </div>
     </div>
   );
