@@ -42,8 +42,8 @@ const ScanBill = () => {
         console.log("API Response:", responseData); // Debugging API response
 
         // Filter out empty strings or null values before setting state
-        const validIngredients = responseData.ingredients.filter(
-          (item: string) => item.trim() !== ""
+        const validIngredients = (responseData.ingredients ?? []).filter(
+          (item: string) => item?.trim() !== ""
         );
 
         console.log("Filtered Ingredients:", validIngredients); // Debugging filtered output
@@ -92,11 +92,10 @@ const ScanBill = () => {
 
           <button
             onClick={handleUpload}
-            className={`mt-4 px-6 py-2 rounded-lg text-white flex items-center space-x-2 ${
-              file
-                ? "bg-blue-600 hover:bg-blue-700 transition"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
+            className={`mt-4 px-6 py-2 rounded-lg text-white ${file
+              ? "bg-blue-600 hover:bg-blue-700 transition"
+              : "bg-gray-400 cursor-not-allowed"
+              }`}
             disabled={!file || loading}
           >
             {loading ? (
