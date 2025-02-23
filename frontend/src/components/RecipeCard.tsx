@@ -3,11 +3,15 @@ import React from "react";
 interface RecipeCardProps {
   title: string;
   image: string;
+  onClick: () => void;
 }
 
-const RecipeCard: React.FC<RecipeCardProps> = ({ title, image }) => {
+const RecipeCard: React.FC<RecipeCardProps> = ({ title, image, onClick }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg">
+    <div
+      className="bg-white rounded-2xl shadow-md overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+      onClick={onClick} // Trigger modal open when clicked
+    >
       <img
         src={image}
         alt={title}
