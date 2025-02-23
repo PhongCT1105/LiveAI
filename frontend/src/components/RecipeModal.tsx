@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // ONLY import this in the modal
+import RecipeInstructions from "./RecipeInstructions";
 
 interface RecipeModalProps {
   recipe: {
@@ -14,62 +14,57 @@ interface RecipeModalProps {
 const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
   if (!recipe) return null;
 
-  const navigate = useNavigate(); // useNavigate is only used here in the modal
-
-  const handleOverlayClick = () => {
-    onClose();
-  };
-
-  const handleModalClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleUseRecipe = () => {
-    onClose();
-    alert(`Using recipe: ${recipe.title}`);
-  };
-
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300"
-      onClick={handleOverlayClick}
-    >
-      <div
-        className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full max-h-screen overflow-y-auto relative transform transition-all duration-300"
-        onClick={handleModalClick}
-      >
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-30 backdrop-blur-xl transition-opacity duration-300">
+      <div className="w-full h-full md:w-3/4 md:h-5/6 bg-white bg-opacity-40 backdrop-blur-2xl shadow-2xl rounded-3xl overflow-hidden relative flex flex-col border border-white/20">
         {/* Close Button */}
         <button
-          className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 focus:outline-none"
+          className="absolute top-6 right-6 bg-white bg-opacity-30 text-gray-800 w-10 h-10 flex items-center justify-center rounded-full shadow-lg hover:bg-red-500 hover:text-white transition duration-300"
           onClick={onClose}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          ✖
         </button>
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">{recipe.title}</h2>
-        <img src={recipe.image} alt={recipe.title} className="w-full h-44 object-cover rounded-md mb-4" />
+        {/* Content Wrapper */}
+        <div className="flex flex-col md:flex-row h-full">
+          {/* Left: Image Section */}
+          <div className="w-full md:w-1/2 h-60 md:h-full flex items-center justify-center bg-gray-200 bg-opacity-30 rounded-lg">
+            <img src={recipe.image} alt={recipe.title} className="max-w-full max-h-full object-contain rounded-lg shadow-md" />
+          </div>
 
-        <h3 className="text-lg font-semibold text-gray-700">Ingredients:</h3>
-        <p className="text-gray-600 mb-2">{recipe.ingredients}</p>
+          {/* Right: Recipe Details */}
+          <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto">
+            <h2 className="text-4xl font-bold text-gray-900 text-center">{recipe.title}</h2>
 
-        <h3 className="text-lg font-semibold text-gray-700">Instructions:</h3>
-        <p className="text-gray-600 mb-4">{recipe.instructions}</p>
+            {/* Ingredients Section */}
+            <h3 className="text-2xl font-semibold text-gray-800 mt-6">🛒 Ingredients</h3>
+            <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
+              {recipe.ingredients.split(",").map((ingredient, index) => (
+                <li key={index}>{ingredient.trim()}</li>
+              ))}
+            </ul>
 
-        {/* Use Recipe Button */}
-        <button
-          className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-700 transition duration-200"
-          onClick={handleUseRecipe}
-        >
-          Use This Recipe
-        </button>
+            {/* Instructions Section */}
+            <h3 className="text-2xl font-semibold text-gray-800 mt-6">👩‍🍳 Instructions</h3>
+            <RecipeInstructions instructions={recipe.instructions} />
+
+            {/* Action Buttons */}
+            <div className="flex justify-center mt-6 space-x-4">
+              <button
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+                onClick={() => alert(`Using recipe: ${recipe.title}`)}
+              >
+                🍽 Use This Recipe
+              </button>
+              <button
+                className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400 transition"
+                onClick={() => window.print()}
+              >
+                🖨 Print Recipe
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
