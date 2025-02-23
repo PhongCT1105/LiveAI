@@ -45,7 +45,7 @@ const RecipeInstructions: React.FC<RecipeInstructionsProps> = ({ instructions })
         <button className="btn" onClick={() => setCurrentStep((prev) => Math.max(prev - 1, 0))} disabled={currentStep === 0}>
           ◀ Previous
         </button>
-        <button className="btn btn-primary" onClick={playCurrentStep} disabled={isPlaying}>
+        <button className="btn btn-primary cursor-pointer" onClick={playCurrentStep} disabled={isPlaying}>
           🔊 Play
         </button>
         <button className="btn" onClick={() => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))} disabled={currentStep === steps.length - 1}>
