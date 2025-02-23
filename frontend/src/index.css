@@ -9,3 +9,8 @@ img {
     width: 100%;
     height: auto;
 }
+
+/* Ensures scrollbar space is always reserved, preventing layout shift */
+html {
+  overflow-y: scroll;
+}

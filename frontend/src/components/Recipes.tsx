@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Papa from "papaparse";
+import { motion } from "framer-motion";
 import RecipeCard from "./RecipeCard";
 import RecipeModal from "./RecipeModal"; // Import RecipeModal
 
@@ -116,8 +117,13 @@ const Recipes = () => {
   );
 
   return (
-    <div className="min-h-screen w-screen flex flex-col items-center p-4">
-      <div className="w-full max-w-6xl mx-auto pt-20 pb-20">
+    <motion.div
+      className="min-h-screen w-screen flex flex-col items-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.5 }}
+    >
+      <div className="w-full max-w-6xl mx-auto pt-20 pb-20 hide-scrollbar">
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">🍽️ Recipe Explorer</h1>
 
         {/* Search Bar with Submit Button */}
@@ -152,9 +158,11 @@ const Recipes = () => {
             <h2 className="text-2xl font-bold mb-4 text-center text-red-600">🔥 Top 3 Recommendations</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
               {topThreeRecipes.map((recipe, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="relative rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105"
+                  className="relative rounded-lg shadow-lg overflow-hidden"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="absolute inset-x-0 top-0 h-2 bg-red-500"></div> {/* Full-width red border */}
                   <RecipeCard
@@ -166,7 +174,7 @@ const Recipes = () => {
                   <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg text-lg border-2 border-white">
                     ⭐ Recommended
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -178,7 +186,12 @@ const Recipes = () => {
             <p className="text-gray-500 col-span-3 text-center">No recipes found.</p>
           ) : (
             paginatedRecipes.map((recipe, index) => (
-              <div key={index} className="relative">
+              <motion.div
+                key={index}
+                className="relative"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <RecipeCard
                   title={recipe.title}
                   image={recipe.image}
@@ -189,7 +202,7 @@ const Recipes = () => {
                     Score: {recipe.score.toFixed(2)}
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))
           )}
         </div>
@@ -198,16 +211,17 @@ const Recipes = () => {
         {totalPages > 1 && (
           <div className="flex justify-center mt-6 space-x-2">
             {Array.from({ length: totalPages }, (_, i) => (
-              <button
+              <motion.button
                 key={i}
                 className={`px-4 py-2 border rounded-md ${currentPage === i + 1
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200 hover:bg-gray-300"
                   }`}
                 onClick={() => setCurrentPage(i + 1)}
+                whileTap={{ scale: 0.9 }}
               >
                 {i + 1}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
@@ -220,7 +234,7 @@ const Recipes = () => {
           />
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
