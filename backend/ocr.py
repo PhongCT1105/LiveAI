@@ -21,10 +21,7 @@ def preprocess_image(image_path):
         image = cv2.imread(image_path)
         if image is None:
             raise ValueError("Could not load image, check the file path.")
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        processed_path = "temp_grayscale.jpg"
-        cv2.imwrite(processed_path, gray_image)
-        return processed_path
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     except Exception as e:
         print(f"Error in grayscale conversion: {e}")
         return None
@@ -54,18 +51,15 @@ def extract_json_data(response):
             try:
                 total_amount = float(entity.mention_text)
             except ValueError:
-                print(f"⚠️ Skipping invalid total_amount: {entity.mention_text}")
+                print(f"Skipping invalid total_amount: {entity.mention_text}")
 
     return {"items": extracted_items, "total_amount": total_amount}
 
 def extract_data(image_path):
     try:
-        processed_image_path = preprocess_image(image_path)
-        if not processed_image_path:
-            raise ValueError("Image preprocessing failed.")
-        
+        preprocess_image(image_path)        
         client = documentai.DocumentProcessorServiceClient()
-        with open(processed_image_path, "rb") as image_file:
+        with open(image_path, "rb") as image_file:
             image_content = image_file.read()
         
         processor_name = client.processor_path(project_id, location, processor_id)
