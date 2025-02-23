@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useState } from "react";
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
 // import axios from "axios";
@@ -18,7 +17,7 @@ const Fridge = () => {
         setIngredients([...ingredients, newIngredient]);
       }
 
-      const extractNumber = (str) => {
+      const extractNumber = (str: string): number => {
         const match = str.match(/\d+/);
         return match ? Number(match[0]) : 0;
       };
