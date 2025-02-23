@@ -24,7 +24,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ title, image, onClick }) => {
 
       {/* Content Section */}
       <div className="p-4 flex flex-col items-center text-center">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 h-20 overflow-hidden text-ellipsis line-clamp-2">
+          {title}
+        </h2>
         <button
           className="mt-3 px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition"
           onClick={onClick}
