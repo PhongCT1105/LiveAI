@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Papa from "papaparse";
 import RecipeCard from "./RecipeCard";
+import RecipeModal from "./RecipeModal"; // Import RecipeModal
 
 // Path to assets
 const CSV_FILE_PATH = "/src/assets/recipes_with_descriptions.csv";
@@ -16,6 +17,7 @@ const Recipes = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false); // Track if searching via API
+  const [selectedRecipe, setSelectedRecipe] = useState(null); // State for the modal
 
   // Fetch and parse CSV file on mount
   useEffect(() => {
@@ -30,6 +32,8 @@ const Recipes = () => {
               title: recipe.Title,
               image: `${IMAGE_PATH}${recipe.Image_Name}.jpg`, // Ensure .jpg extension
               score: null, // Default score for non-searched items
+              ingredients: recipe.Ingredients, // Optional: ingredients from CSV
+              instructions: recipe.Instructions, // Optional: instructions from CSV
             }));
             setRecipes(formattedRecipes);
             setFilteredRecipes(formattedRecipes); // Default to all recipes
@@ -54,6 +58,8 @@ const Recipes = () => {
           title: recipe.title,
           image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
           score: recipe.score,
+          ingredients: recipe.ingredients, // Add ingredients if available
+          instructions: recipe.instructions, // Add instructions if available
         }))
         .sort((a, b) => b.score - a.score); // Ensure descending order by score
 
@@ -126,7 +132,11 @@ const Recipes = () => {
                 className="relative rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105"
               >
                 <div className="absolute inset-x-0 top-0 h-2 bg-red-500"></div> {/* Full-width red border */}
-                <RecipeCard title={recipe.title} image={recipe.image} />
+                <RecipeCard
+                  title={recipe.title}
+                  image={recipe.image}
+                  onClick={() => setSelectedRecipe(recipe)} // Open modal on click
+                />
                 {/* Top 3 display "Recommended" instead of score */}
                 <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg text-lg border-2 border-white">
                   ⭐ Recommended
@@ -144,7 +154,11 @@ const Recipes = () => {
         ) : (
           paginatedRecipes.map((recipe, index) => (
             <div key={index} className="relative">
-              <RecipeCard title={recipe.title} image={recipe.image} />
+              <RecipeCard
+                title={recipe.title}
+                image={recipe.image}
+                onClick={() => setSelectedRecipe(recipe)} // Open modal on click
+              />
               {isSearching && recipe.score !== null && (
                 <div className="absolute top-2 left-2 bg-yellow-400 text-black font-bold px-3 py-1 rounded-lg shadow-md">
                   Score: {recipe.score.toFixed(2)}
@@ -172,6 +186,14 @@ const Recipes = () => {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Recipe Modal for "View More" */}
+      {selectedRecipe && (
+        <RecipeModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
+        />
       )}
     </div>
   );
