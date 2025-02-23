@@ -89,7 +89,7 @@ def aggregate_item_names(receipt_data):
     return [item["name"] for item in receipt_data.get("items", [])]
 
 # Example usage
-sample_receipt_path = "test1.png"
+sample_receipt_path = "../receipt/grocery-test.png"
 receipt_data = extract_data(sample_receipt_path)
 if receipt_data:
     item_names = aggregate_item_names(receipt_data)
