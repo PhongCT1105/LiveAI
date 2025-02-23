@@ -7,15 +7,17 @@ const CSV_FILE_PATH = "/src/assets/recipes_with_descriptions.csv";
 const IMAGE_PATH = "/src/assets/"; // Ensure images are stored here
 
 const ITEMS_PER_PAGE = 9; // Show 9 recipes per page
+const API_URL = "http://localhost:8000/recipes"; // FastAPI endpoint
 
 const Recipes = () => {
   const [query, setQuery] = useState("");
-  const [recipes, setRecipes] = useState([]);
-  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [recipes, setRecipes] = useState([]); // Stores all recipes from CSV
+  const [filteredRecipes, setFilteredRecipes] = useState([]); // Stores search results
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch and parse CSV file on mount
   useEffect(() => {
-    // Fetch and parse CSV file
     fetch(CSV_FILE_PATH)
       .then((response) => response.text())
       .then((csvText) => {
@@ -34,22 +36,30 @@ const Recipes = () => {
       });
   }, []);
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setFilteredRecipes(recipes);
-      setCurrentPage(1); // Reset to page 1 when search is cleared
-      return;
+  // Function to submit query to FastAPI and fetch similar recipes
+  const fetchSimilarRecipes = async () => {
+    if (!query.trim()) return; // Prevent empty search
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      // Format returned recipes for display
+      const formattedResults = data.map((recipe) => ({
+        title: recipe.title,
+        image: `${IMAGE_PATH}${recipe.image_name}.jpg`, // Ensure correct image path
+      }));
+
+      setFilteredRecipes(formattedResults);
+      setCurrentPage(1); // Reset pagination
+    } catch (error) {
+      console.error("Error fetching similar recipes:", error);
+      setFilteredRecipes([]);
+    } finally {
+      setLoading(false);
     }
-
-    // Filter recipes by title
-    const searchResults = recipes
-      .filter((recipe) =>
-        recipe.title.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, 5); // Show only top 5 results in search
-
-    setFilteredRecipes(searchResults);
-  }, [query, recipes]);
+  };
 
   // Pagination logic
   const totalPages = Math.ceil(filteredRecipes.length / ITEMS_PER_PAGE);
@@ -62,7 +72,7 @@ const Recipes = () => {
     <div className="p-5 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">🍽️ Recipe Explorer</h1>
 
-      {/* Search Bar */}
+      {/* Search Bar with Submit Button */}
       <div className="flex justify-center mb-6">
         <input
           type="text"
@@ -73,15 +83,27 @@ const Recipes = () => {
         />
         <button
           className="ml-3 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          onClick={() => setQuery("")}
+          onClick={fetchSimilarRecipes}
+        >
+          Search
+        </button>
+        <button
+          className="ml-3 p-3 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+          onClick={() => {
+            setQuery("");
+            setFilteredRecipes(recipes); // Restore all recipes
+          }}
         >
           Clear
         </button>
       </div>
 
+      {/* Loading Indicator */}
+      {loading && <p className="text-center text-gray-500">Loading recipes...</p>}
+
       {/* Recipe Grid (3 Columns per Row) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {paginatedRecipes.length === 0 ? (
+        {paginatedRecipes.length === 0 && !loading ? (
           <p className="text-gray-500 col-span-3 text-center">No recipes found.</p>
         ) : (
           paginatedRecipes.map((recipe, index) => (
