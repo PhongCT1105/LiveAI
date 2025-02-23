@@ -121,7 +121,11 @@ const Recipes = () => {
           <h2 className="text-2xl font-bold mb-4 text-center text-red-600">🔥 Top 3 Recommendations</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
             {topThreeRecipes.map((recipe, index) => (
-              <div key={index} className="relative border-4 border-red-500 p-2 rounded-lg shadow-lg">
+              <div
+                key={index}
+                className="relative rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105"
+              >
+                <div className="absolute inset-x-0 top-0 h-2 bg-red-500"></div> {/* Full-width red border */}
                 <RecipeCard title={recipe.title} image={recipe.image} />
                 {/* Top 3 display "Recommended" instead of score */}
                 <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg text-lg border-2 border-white">
