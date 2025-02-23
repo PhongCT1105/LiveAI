@@ -55,3 +55,14 @@ export const useIngredients = (usedIngredients: string[]) => {
 
   localStorage.setItem("ingredientQuantities", JSON.stringify(quantities)); // Save updated data
 };
+
+// Save ingredient quantities to localStorage
+export const saveIngredientQuantities = (quantities: Record<string, string>) => {
+  const numericQuantities: Record<string, number> = {};
+  for (const key in quantities) {
+    const value = quantities[key];
+    const numberMatch = value.match(/\d+/);
+    numericQuantities[key] = numberMatch ? Number(numberMatch[0]) : 0;
+  }
+  localStorage.setItem("ingredientQuantities", JSON.stringify(numericQuantities));
+};

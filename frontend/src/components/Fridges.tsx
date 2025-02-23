@@ -1,20 +1,36 @@
-import { useState, useRef, useEffect } from "react"; // Add useRef and useEffect
-import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
+// Fridge.tsx
+import { useState, useRef, useEffect } from "react";
+import { getIngredientQuantities, saveIngredientQuantities } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
 import axios from "axios";
 
-const Fridge = () => {
+interface FridgeProps {
+  scannedIngredients: string[];
+}
+
+const Fridge = ({ scannedIngredients }: FridgeProps) => {
   const [ingredients, setIngredients] = useState<string[]>([
     "Fruits", "Milk Products", "Meat", "Vegetables", "Condiments", "Frozen Meat", "Frozen Vegetables",
     "Cake", "Bread", "Cheese", "Eggs", "Butter", "Herbs", "Juice", "Ketchup", "Soy sauce",
     "Mustard", "Mayonnaise", "Fish", "Tofu", "Garlic", "Onion", "Parsley", "Cilantro"
   ]);
-  const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
+  const [quantities, setQuantities] = useState<Record<string, string>>(() => {
+    const quantities = getIngredientQuantities();
+    const stringQuantities: Record<string, string> = {};
+    for (const key in quantities) {
+      stringQuantities[key] = quantities[key].toString();
+    }
+    return stringQuantities;
+  });
   const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
   const [newGroup, setNewGroup] = useState("");
+  const [showQuantityPopup, setShowQuantityPopup] = useState(false);
+  const [scannedIngredientsWithQuantities, setScannedIngredientsWithQuantities] = useState<
+    Record<string, { quantity: string; group: string }>
+  >({});
 
   const [ingredientGroups, setIngredientGroups] = useState<Record<string, string[]>>({
     "Meat": ["Beef", "Pork", "Chicken", "Fish"],
@@ -25,16 +41,21 @@ const Fridge = () => {
     "Herbs": ["Garlic", "Onion", "Parsley", "Cilantro",]
   });
 
-  // Ref to measure the height of the quantity card
   const quantityCardRef = useRef<HTMLDivElement>(null);
   const [quantityCardHeight, setQuantityCardHeight] = useState(0);
 
-  // Effect to measure the height of the quantity card
   useEffect(() => {
     if (quantityCardRef.current) {
       setQuantityCardHeight(quantityCardRef.current.offsetHeight);
     }
-  }, [selectedIngredient]); // Re-measure when selectedIngredient changes
+  }, [selectedIngredient]);
+
+  // Show the quantity pop-up when scannedIngredients is updated
+  useEffect(() => {
+    if (scannedIngredients.length > 0) {
+      setShowQuantityPopup(true);
+    }
+  }, [scannedIngredients]);
 
   const handleAddIngredient = () => {
     if (newIngredient && newQuantity && newGroup) {
@@ -55,12 +76,14 @@ const Fridge = () => {
       const unitMatch = newQuantity.match(/[a-zA-Z]+/);
       const unit = unitMatch ? unitMatch[0] : "";
 
-      setQuantities({
+      const updatedQuantities = {
         ...quantities,
         [newIngredient]: `${totalQuantity} ${unit}`,
-      });
+      };
 
-      // Update ingredientGroups
+      setQuantities(updatedQuantities);
+      saveIngredientQuantities(updatedQuantities); // Save to localStorage
+
       setIngredientGroups((prevGroups) => ({
         ...prevGroups,
         [newGroup]: [...(prevGroups[newGroup] || []), newIngredient],
@@ -85,42 +108,36 @@ const Fridge = () => {
     }
   };
 
-  const handleScan = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await axios.post("http://localhost:8000/scan", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      const scannedIngredients = response.data.ingredients;
-      if (scannedIngredients && scannedIngredients.length > 0) {
-        const newIngredients = [...ingredients];
-        const newQuantities = { ...quantities };
-
-        scannedIngredients.forEach((ingredient: string) => {
-          if (!newIngredients.includes(ingredient)) {
-            newIngredients.push(ingredient);
-          }
-          newQuantities[ingredient] = "1 unit";
-        });
-
-        setIngredients(newIngredients);
-        setQuantities(newQuantities);
-      }
-    } catch (error) {
-      console.error("Error scanning receipt:", error);
-    }
+  const handleQuantityInput = (ingredient: string, quantity: string, group: string) => {
+    setScannedIngredientsWithQuantities((prev) => ({
+      ...prev,
+      [ingredient]: { quantity, group },
+    }));
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleScan(file);
-    }
+  const handleSaveQuantities = () => {
+    const newQuantities = { ...quantities };
+    const newIngredientGroups = { ...ingredientGroups };
+
+    Object.entries(scannedIngredientsWithQuantities).forEach(([ingredient, data]) => {
+      const { quantity, group } = data;
+
+      // Update quantities
+      newQuantities[ingredient] = quantity;
+
+      // Update ingredient groups
+      if (group && group !== "new") {
+        if (!newIngredientGroups[group].includes(ingredient)) {
+          newIngredientGroups[group] = [...newIngredientGroups[group], ingredient];
+        }
+      }
+    });
+
+    setQuantities(newQuantities);
+    setIngredientGroups(newIngredientGroups);
+    saveIngredientQuantities(newQuantities); // Save to localStorage
+    setShowQuantityPopup(false);
+    setScannedIngredientsWithQuantities({});
   };
 
   const positioningConfig = {
@@ -145,7 +162,7 @@ const Fridge = () => {
         <div
           ref={quantityCardRef}
           className="absolute left-5 top-20 w-75 h-auto bg-white shadow-lg rounded-lg p-4 transition-transform duration-300"
-          style={{ maxHeight: "200px", overflowY: "auto" }} // Add maxHeight and overflowY
+          style={{ maxHeight: "200px", overflowY: "auto" }}
         >
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
 
@@ -174,8 +191,8 @@ const Fridge = () => {
         <div
           className="absolute left-5 w-75 h-90 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300"
           style={{
-            top: selectedIngredient ? `calc(100px + ${quantityCardHeight}px + 16px)` : "50%", // Adjust top position based on quantity card height
-            transform: selectedIngredient ? "translateY(0)" : "translateY(-50%)", // Center if no quantity card
+            top: selectedIngredient ? `calc(100px + ${quantityCardHeight}px + 16px)` : "50%",
+            transform: selectedIngredient ? "translateY(0)" : "translateY(-50%)",
           }}
         >
           <h3 className="text-lg font-bold mb-4">Add New Ingredient</h3>
@@ -227,6 +244,50 @@ const Fridge = () => {
           >
             Cancel
           </button>
+        </div>
+      )}
+
+      {/* Quantity Pop-up for Scanned Ingredients */}
+      {showQuantityPopup && (
+        <div className="z-99 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Enter Quantities and Group for Scanned Ingredients</h3>
+            {scannedIngredients.map((ingredient) => (
+              <div key={ingredient} className="mb-4">
+                <label className="block text-gray-700">{ingredient}</label>
+                <input
+                  type="text"
+                  placeholder="Quantity"
+                  value={scannedIngredientsWithQuantities[ingredient]?.quantity || ""}
+                  onChange={(e) =>
+                    handleQuantityInput(ingredient, e.target.value, scannedIngredientsWithQuantities[ingredient]?.group || "")
+                  }
+                  className="w-full p-2 border border-gray-300 rounded mb-2"
+                />
+                <select
+                  value={scannedIngredientsWithQuantities[ingredient]?.group || ""}
+                  onChange={(e) =>
+                    handleQuantityInput(ingredient, scannedIngredientsWithQuantities[ingredient]?.quantity || "", e.target.value)
+                  }
+                  className="w-full p-2 border border-gray-300 rounded"
+                >
+                  <option value="">Select Group</option>
+                  {Object.keys(ingredientGroups).map((group) => (
+                    <option key={group} value={group}>
+                      {group}
+                    </option>
+                  ))}
+                  <option value="new">Create New Group</option>
+                </select>
+              </div>
+            ))}
+            <button
+              className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+              onClick={handleSaveQuantities}
+            >
+              Save
+            </button>
+          </div>
         </div>
       )}
 

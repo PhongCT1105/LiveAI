@@ -1,11 +1,16 @@
 import { useState, useRef } from "react";
 import { Loader, XCircle, UploadCloud } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const ScanBill = () => {
+interface ScanBillProps {
+  setScannedIngredients: (ingredients: string[]) => void;
+}
+
+const ScanBill = ({ setScannedIngredients }: ScanBillProps) => {
   const [file, setFile] = useState<File | null>(null);
-  const [ingredients, setIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -39,15 +44,18 @@ const ScanBill = () => {
         }
 
         const responseData = await response.json();
-        console.log("API Response:", responseData); // Debugging API response
+        console.log("API Response:", responseData);
 
         // Filter out empty strings or null values before setting state
         const validIngredients = (responseData.ingredients ?? []).filter(
           (item: string) => item?.trim() !== ""
         );
 
-        console.log("Filtered Ingredients:", validIngredients); // Debugging filtered output
-        setIngredients(validIngredients);
+        console.log("Filtered Ingredients:", validIngredients);
+        setScannedIngredients(validIngredients);
+
+        // Navigate to /fridge after successful scan
+        navigate("/fridge");
       } catch (error) {
         console.error("Error uploading file:", error);
       } finally {
@@ -107,23 +115,6 @@ const ScanBill = () => {
             )}
           </button>
         </div>
-
-        {/* Ingredients Display */}
-        {ingredients.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-xl font-bold text-gray-800">Extracted Ingredients</h3>
-            <div className="grid grid-cols-2 gap-4 mt-3">
-              {ingredients.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-white border border-gray-200 rounded-lg shadow-md p-3 flex items-center justify-center text-gray-800 font-semibold"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
