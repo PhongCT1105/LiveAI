@@ -14,6 +14,11 @@ interface RecipeModalProps {
 const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
   if (!recipe) return null;
 
+  const handleUseRecipe = () => {
+    onClose();
+    alert(`Using recipe: ${recipe.title}`);
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-30 backdrop-blur-xl transition-opacity duration-300">
       <div className="w-full h-full md:w-3/4 md:h-5/6 bg-white bg-opacity-40 backdrop-blur-2xl shadow-2xl rounded-3xl overflow-hidden relative flex flex-col border border-white/20">
@@ -40,7 +45,9 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
             <h3 className="text-2xl font-semibold text-gray-800 mt-6">🛒 Ingredients</h3>
             <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
               {recipe.ingredients.split(",").map((ingredient, index) => (
-                <li key={index}>{ingredient.trim()}</li>
+                <li key={index}>
+                  {ingredient.trim().replace(/^\[|\]$/g, '')}
+                </li>
               ))}
             </ul>
 
@@ -52,15 +59,15 @@ const RecipeModal: React.FC<RecipeModalProps> = ({ recipe, onClose }) => {
             <div className="flex justify-center mt-6 space-x-4">
               <button
                 className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
-                onClick={() => alert(`Using recipe: ${recipe.title}`)}
+                onClick={handleUseRecipe}
               >
-                🍽 Use This Recipe
+                Use This Recipe
               </button>
               <button
                 className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400 transition"
                 onClick={() => window.print()}
               >
-                🖨 Print Recipe
+                Print Recipe
               </button>
             </div>
           </div>

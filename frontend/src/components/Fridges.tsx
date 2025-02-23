@@ -1,80 +1,69 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getIngredientQuantities, getStoredIngredients } from "../utils/fridgeHelper";
 import fridgeImage from "../assets/fridge_empty.png";
-import axios from "axios";
+// import axios from "axios";
 
 const Fridge = () => {
-  const [ingredients, setIngredients] = useState(getStoredIngredients());
-  const [quantities, setQuantities] = useState(getIngredientQuantities());
-  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [ingredients, setIngredients] = useState<string[]>(getStoredIngredients());
+  const [quantities, setQuantities] = useState<Record<string, string>>(getIngredientQuantities());
+  const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
 
-  // useEffect(() => {
-  //   // Fetch data from the backend
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await axios.get("/api/ingredients"); // Replace with your API endpoint
-  //       setIngredients(response.data.ingredients);
-  //       setQuantities(response.data.quantities);
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
   const handleAddIngredient = () => {
     if (newIngredient && newQuantity) {
-      // Update ingredients list
       if (!ingredients.includes(newIngredient)) {
         setIngredients([...ingredients, newIngredient]);
       }
 
-      // Extract numbers from the quantities
       const extractNumber = (str: string): number => {
-        const match = str.match(/\d+/); // Extract first number in the string
+        const match = str.match(/\d+/);
         return match ? Number(match[0]) : 0;
       };
 
       const newQuantNum = extractNumber(newQuantity);
       const existingQuantNum = extractNumber(quantities[newIngredient] ?? "0");
 
-      // Sum up the quantities
       const totalQuantity = newQuantNum + existingQuantNum;
 
-      // Preserve the unit (assuming both have the same unit)
       const unitMatch = newQuantity.match(/[a-zA-Z]+/);
       const unit = unitMatch ? unitMatch[0] : "";
 
-      // Update quantities
       setQuantities({
         ...quantities,
         [newIngredient]: `${totalQuantity}${unit}`,
       });
 
-      // Clear the form
       setNewIngredient("");
       setNewQuantity("");
       setShowAddForm(false);
     }
   };
 
-
   const positioningConfig = {
     "🍏 Top Shelf": { top: "16%", left: "50%", width: "80%", items: ["Apple", "Banana", "Cake"] },
     "🥚 Second Shelf": { top: "29%", left: "50%", width: "80%", items: ["Eggs", "Cheese", "Milk", "Yogurt"] },
-    "🍖 Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu"] },
-    "🥕 Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli"] },
+    "🍖 Third Shelf": { top: "40%", left: "50%", width: "80%", items: ["Chicken", "Fish", "Tofu", "Meat"] },
+    "🥕 Bottom Shelf": { top: "53%", left: "50%", width: "80%", items: ["Carrot", "Lettuce", "Broccoli", "Potato"] },
     "🧃 Door Racks": { top: "20%", left: "85%", width: "15%", items: ["Juice", "Butter", "Ketchup"] },
     "Freezer": { top: "75%", left: "50%", width: "80%", items: ["Frozen", "Frozen", "Frozen", "Frozen"] }
   };
 
+  // Calculate fridge translation based on pop-up visibility
+  const fridgeTranslation = () => {
+    if (selectedIngredient || showAddForm) {
+      return "translate-x-32"; // Move fridge to the right if one pop-up is visible
+    } else {
+      return "translate-x-0"; // No translation if no pop-ups are visible
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-screen bg-gray-200 pt-16">
+      {/* Quantity Pop-up */}
       {selectedIngredient && (
-        <div className="absolute left-5 top-20 w-64 h-40 bg-white shadow-lg rounded-lg p-4">
+        <div className="absolute left-5 top-20 w-75 h-40 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300 transform translate-x-0">
           <h3 className="text-lg font-bold">{selectedIngredient}</h3>
           <p className="text-gray-700 mt-2">Quantity: {quantities[selectedIngredient] || "Unknown"}</p>
           <button
@@ -86,17 +75,9 @@ const Fridge = () => {
         </div>
       )}
 
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Virtual Fridge</h2>
-
-      <button
-        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        onClick={() => setShowAddForm(true)}
-      >
-        Add Ingredient
-      </button>
-
+      {/* Add Ingredient Pop-up */}
       {showAddForm && (
-        <div className="z-80 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg">
+        <div className="absolute left-5 top-1/2 transform -translate-y-1/2 w-75 h-70 bg-white shadow-lg rounded-lg p-4 transition-transform duration-300">
           <h3 className="text-lg font-bold mb-4">Add New Ingredient</h3>
           <input
             type="text"
@@ -127,10 +108,20 @@ const Fridge = () => {
         </div>
       )}
 
-      <div className="relative w-[800px] h-[526px] rounded-lg">
+      <h2 className={`text-3xl font-bold text-gray-800 mb-6 transition-transform duration-300 ${fridgeTranslation()}`}>Your Virtual Fridge</h2>
+
+      <button
+        className={`mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition transition-transform duration-300 ${fridgeTranslation()}`}
+        onClick={() => setShowAddForm(true)}
+      >
+        Add Ingredient
+      </button>
+
+      {/* Fridge Container */}
+      <div className={`relative w-[800px] h-[526px] rounded-lg transition-transform duration-300 ${fridgeTranslation()}`}>
         <img src={fridgeImage} alt="Fridge" className="w-full h-[400px] object-fill rounded-lg" />
 
-        {Object.entries(positioningConfig).map(([sectionName, config], index) => {
+        {Object.entries(positioningConfig).map(([_sectionName, config], index) => {
           const itemsInSection = ingredients.filter((item) => config.items.includes(item));
           const isOdd = itemsInSection.length % 2 !== 0;
 
@@ -181,8 +172,8 @@ const Fridge = () => {
   );
 };
 
-const getIngredientIcon = (item) => {
-  const icons = {
+const getIngredientIcon = (item: string): string => {
+  const icons: Record<string, string> ={
     Milk: "🥛",
     Cheese: "🧀",
     Yogurt: "🍦",
@@ -194,6 +185,7 @@ const getIngredientIcon = (item) => {
     Lettuce: "🥬",
     Eggs: "🥚",
     Chicken: "🍗",
+    Meat: "🥩",
     Fish: "🐟",
     Tofu: "🫛",
     Juice: "🧃",
@@ -201,6 +193,7 @@ const getIngredientIcon = (item) => {
     Ketchup: "🍅",
     Cake: "🍰",
     Frozen: "🥶",
+    Potato: "🥔"
   };
   return icons[item] || "❓";
 };
